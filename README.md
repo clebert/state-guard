@@ -81,7 +81,7 @@ if (loadingData) {
 }
 ```
 
-## Using StateGuard with React
+### Using StateGuard with React
 
 To use a StateGuard store in a React application, you can utilize the
 `useSyncExternalStore` hook. This hook efficiently synchronizes the store state
