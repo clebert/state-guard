@@ -2,7 +2,7 @@ import type {InferSnapshot, Store} from './create-store.js';
 
 import {createStore} from './create-store.js';
 import {beforeEach, describe, expect, jest, test} from '@jest/globals';
-import * as z from 'zod';
+import {z} from 'zod';
 
 const valueSchemaMap = {
   red: z.object({color: z.literal(`#FF0000`)}),

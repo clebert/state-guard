@@ -39,7 +39,7 @@ for data loading:
 
 ```js
 import {createStore} from 'state-guard';
-import * as z from 'zod';
+import {z} from 'zod';
 
 const store = createStore({
   initialState: `idle`,

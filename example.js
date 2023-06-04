@@ -1,5 +1,5 @@
 import {createStore} from './lib/index.js';
-import * as z from 'zod';
+import {z} from 'zod';
 
 const store = createStore({
   initialState: `idle`,

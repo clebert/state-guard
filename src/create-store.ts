@@ -1,4 +1,4 @@
-import type {TypeOf, ZodSchema} from 'zod';
+import type {z} from 'zod';
 
 export type Store<
   TValueSchemaMap extends ValueSchemaMap,
@@ -24,7 +24,7 @@ export type Store<
   ) => () => void;
 };
 
-export type ValueSchemaMap = Readonly<Record<string, ZodSchema<any>>>;
+export type ValueSchemaMap = Readonly<Record<string, z.ZodSchema<any>>>;
 
 export type TransitionsMap<TValueSchemaMap extends ValueSchemaMap> = Readonly<
   Record<keyof TValueSchemaMap, Readonly<Record<string, keyof TValueSchemaMap>>>
@@ -36,7 +36,7 @@ export interface Snapshot<
   TState extends keyof TValueSchemaMap,
 > {
   readonly state: TState;
-  readonly value: TypeOf<TValueSchemaMap[TState]>;
+  readonly value: z.TypeOf<TValueSchemaMap[TState]>;
   readonly actions: InferActions<TValueSchemaMap, TTransitionsMap, TState>;
 }
 
@@ -46,7 +46,7 @@ export type InferActions<
   TState extends keyof TValueSchemaMap,
 > = {
   readonly [TActionName in keyof TTransitionsMap[TState]]: (
-    newValue: TypeOf<TValueSchemaMap[TTransitionsMap[TState][TActionName]]>,
+    newValue: z.TypeOf<TValueSchemaMap[TTransitionsMap[TState][TActionName]]>,
   ) => Snapshot<
     TValueSchemaMap,
     TTransitionsMap,
@@ -69,7 +69,7 @@ export interface StoreInit<
   TInitialState extends keyof TValueSchemaMap,
 > {
   readonly initialState: TInitialState;
-  readonly initialValue: TypeOf<TValueSchemaMap[TInitialState]>;
+  readonly initialValue: z.TypeOf<TValueSchemaMap[TInitialState]>;
   readonly valueSchemaMap: TValueSchemaMap;
   readonly transitionsMap: TTransitionsMap;
 }
