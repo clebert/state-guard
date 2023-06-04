@@ -7,7 +7,7 @@ const store = createStore({
   valueSchemaMap: {
     idle: z.void(),
     loading: z.void(),
-    loaded: z.object({data: z.string()}),
+    loaded: z.object({data: z.string()}).strict(),
   },
   transitionsMap: {
     idle: {startLoading: `loading`},
