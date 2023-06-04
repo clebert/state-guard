@@ -103,8 +103,17 @@ export function createStore<
     }
   }
 
+  const initialValueResult =
+    valueSchemaMap[initialState]!.safeParse(initialValue);
+
+  if (!initialValueResult.success) {
+    console.error(initialValueResult.error.format());
+
+    throw new Error(`Invalid initial value.`);
+  }
+
   let actualState: keyof TValueSchemaMap = initialState;
-  let actualValue = valueSchemaMap[actualState]!.parse(initialValue);
+  let actualValue = initialValue;
   let actualVersion = Symbol();
   let actualSnapshot = createSnapshot();
 
@@ -143,13 +152,22 @@ export function createStore<
 
             assertVersion();
 
+            const newValueResult =
+              valueSchemaMap[newState]!.safeParse(newValue);
+
+            if (!newValueResult.success) {
+              console.error(newValueResult.error.format());
+
+              throw new Error(`Invalid new value.`);
+            }
+
             const previousState = actualState;
             const previousValue = actualValue;
             const previousVersion = actualVersion;
             const previousSnapshot = actualSnapshot;
 
             actualState = newState;
-            actualValue = valueSchemaMap[actualState]!.parse(newValue);
+            actualValue = newValue;
             actualVersion = Symbol();
             actualSnapshot = createSnapshot();
 
