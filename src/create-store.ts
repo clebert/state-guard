@@ -126,7 +126,7 @@ export function createStore<
 
     function assertVersion(): void {
       if (version !== actualVersion) {
-        throw new Error(`Outdated snapshot.`);
+        throw new Error(`Stale snapshot.`);
       }
     }
 

@@ -3,20 +3,11 @@
 > Type-safe, deterministic state management with state machines and automatic
 > snapshot invalidation.
 
-StateGuard is a TypeScript state management library designed for web projects,
-built on top of the powerful [Zod](https://github.com/colinhacks/zod) validation
-library. It provides a type-safe, deterministic, and expressive state machine
-with encapsulated actions and automatic invalidation of outdated state
-snapshots. StateGuard aims to reduce bugs related to state manipulation, improve
-project maintainability, and ensure that your application behaves predictably.
-
-By using StateGuard, developers can define state schemas and transition maps
-with the help of Zod, allowing for a clear understanding of the possible states,
-their validation, and actions within their applications. This makes it easier to
-reason about and modify the state throughout the development process.
-Additionally, StateGuard's type-safe actions, backed by Zod validation, minimize
-the risk of runtime errors and help developers catch potential issues at
-compile-time.
+StateGuard is a library for managing state in TypeScript web projects,
+leveraging the [Zod](https://github.com/colinhacks/zod) validation library to
+ensure type safety and deterministic behavior. It offers a state machine with
+encapsulated actions and automatic invalidation of stale snapshots, which helps
+avoid errors and enforce proper design patterns.
 
 ## Installation
 
@@ -112,3 +103,19 @@ const YourComponent = () => {
   // Your component logic and rendering.
 };
 ```
+
+### Ensuring Snapshot Freshness
+
+In some cases, a snapshot taken can become stale, for example, when used after
+the result of an asynchronous operation. Using a stale snapshot will lead to
+exceptions being thrown, and it is crucial to ensure that this does not happen.
+The StateGuard API enables you to avoid such issues by allowing you to check the
+freshness of a snapshot or get an updated one before proceeding.
+
+### Avoiding State Transitions in Subscription Listeners
+
+Performing state transitions directly within a subscription listener is
+prohibited in StateGuard. Using actions to change the state within a listener
+will lead to exceptions being thrown. This enforcement helps prevent cascading
+updates, exponential state changes, and potential violation of the
+unidirectional data flow principle.

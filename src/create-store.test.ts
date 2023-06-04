@@ -117,14 +117,14 @@ describe(`Store`, () => {
     );
   });
 
-  test(`outdated snapshots`, () => {
+  test(`stale snapshots`, () => {
     const redTrafficLight = trafficLightStore.get(`red`)!;
     const {actions} = redTrafficLight;
     const {requestGreen} = actions;
 
     requestGreen(yellowValue);
 
-    const message = `Outdated snapshot.`;
+    const message = `Stale snapshot.`;
 
     expect(() => redTrafficLight.state).toThrow(message);
     expect(() => redTrafficLight.value).toThrow(message);
