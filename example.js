@@ -1,38 +1,49 @@
 import {createStore} from './lib/index.js';
 import {z} from 'zod';
 
-const store = createStore({
-  initialState: `idle`,
+const dataStore = createStore({
+  initialState: `unloaded`,
   initialValue: undefined,
   valueSchemaMap: {
-    idle: z.void(),
+    unloaded: z.void(),
     loading: z.void(),
-    loaded: z.object({data: z.string()}).strict(),
+    loaded: z.string(),
+    updating: z.string(),
+    failed: z.object({error: z.unknown()}).strict(),
   },
   transitionsMap: {
-    idle: {startLoading: `loading`},
-    loading: {finishLoading: `loaded`},
-    loaded: {reset: `idle`},
+    unloaded: {load: `loading`},
+    loading: {set: `loaded`, fail: `failed`},
+    loaded: {update: `updating`},
+    updating: {set: `loaded`, fail: `failed`},
+    failed: {reset: `unloaded`},
   },
 });
 
-const unsubscribe = store.subscribe(() => {
-  const snapshot = store.get();
+dataStore.subscribe(() => {
+  const data = dataStore.get();
 
-  if (snapshot.state === `loaded`) {
-    console.log(`Data loaded:`, snapshot.value);
+  if (data.state === `loaded`) {
+    console.log(`Data loaded:`, data.value);
   } else {
-    console.log(`State changed:`, snapshot.state);
+    console.log(`State changed:`, data.state);
   }
 });
 
-const idle = store.get(`idle`);
+const unloadedData = dataStore.get(`unloaded`);
 
-if (idle) {
-  const loading = idle.actions.startLoading();
-  const loaded = loading.actions.finishLoading({data: `Hello, World!`});
+if (unloadedData) {
+  const loadingData = unloadedData.actions.load();
 
-  loaded.actions.reset();
+  fetch(`https://example.com`)
+    .then(async (response) => {
+      if (loadingData === dataStore.get(`loading`)) {
+        loadingData.actions.set(await response.text());
+      }
+    })
+    .catch((error) => {
+      if (loadingData === dataStore.get(`loading`)) {
+        loadingData.actions.fail({error});
+      }
+    });
 }
-
-unsubscribe();

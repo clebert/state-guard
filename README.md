@@ -38,56 +38,56 @@ Here's how to use StateGuard and Zod together to define a simple state machine
 for data loading:
 
 ```js
-import {createStore} from 'state-guard';
+import {createStore} from './lib/index.js';
 import {z} from 'zod';
 
-const store = createStore({
-  initialState: `idle`,
+const dataStore = createStore({
+  initialState: `unloaded`,
   initialValue: undefined,
   valueSchemaMap: {
-    idle: z.void(),
+    unloaded: z.void(),
     loading: z.void(),
-    loaded: z.object({data: z.string()}).strict(),
+    loaded: z.string(),
+    updating: z.string(),
+    failed: z.object({error: z.unknown()}).strict(),
   },
   transitionsMap: {
-    idle: {startLoading: `loading`},
-    loading: {finishLoading: `loaded`},
-    loaded: {reset: `idle`},
+    unloaded: {load: `loading`},
+    loading: {set: `loaded`, fail: `failed`},
+    loaded: {update: `updating`},
+    updating: {set: `loaded`, fail: `failed`},
+    failed: {reset: `unloaded`},
   },
 });
 
-const unsubscribe = store.subscribe(() => {
-  const snapshot = store.get();
+dataStore.subscribe(() => {
+  const data = dataStore.get();
 
-  if (snapshot.state === `loaded`) {
-    console.log(`Data loaded:`, snapshot.value);
+  if (data.state === `loaded`) {
+    console.log(`Data loaded:`, data.value);
   } else {
-    console.log(`State changed:`, snapshot.state);
+    console.log(`State changed:`, data.state);
   }
 });
 
-const idle = store.get(`idle`);
+const unloadedData = dataStore.get(`unloaded`);
 
-if (idle) {
-  const loading = idle.actions.startLoading();
-  const loaded = loading.actions.finishLoading({data: `Hello, World!`});
+if (unloadedData) {
+  const loadingData = unloadedData.actions.load();
 
-  loaded.actions.reset();
+  fetch(`https://example.com`)
+    .then(async (response) => {
+      if (loadingData === dataStore.get(`loading`)) {
+        loadingData.actions.set(await response.text());
+      }
+    })
+    .catch((error) => {
+      if (loadingData === dataStore.get(`loading`)) {
+        loadingData.actions.fail({error});
+      }
+    });
 }
-
-unsubscribe();
 ```
-
-This example demonstrates a simple state machine with three states:
-
-- Idle: The application is not loading any data.
-- Loading: The application is currently loading data.
-- Loaded: The data has been loaded.
-
-To change states, we use actions such as `startLoading()`, `finishLoading()`,
-and `reset()` provided by the various state snapshots. When a state transition
-occurs, the subscriber receives the new state snapshot, allowing you to perform
-any necessary updates in response to the state change.
 
 ## Using StateGuard with React
 
@@ -101,12 +101,11 @@ Call the `useSyncExternalStore` hook inside your component, passing the
 state snapshot:
 
 ```js
-import {myStore} from './my-store.js';
 import * as React from 'react';
 
 const YourComponent = () => {
-  const snapshot = React.useSyncExternalStore(myStore.subscribe, () =>
-    myStore.get(),
+  const data = React.useSyncExternalStore(dataStore.subscribe, () =>
+    dataStore.get(),
   );
 
   // Your component logic and rendering.
