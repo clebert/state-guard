@@ -70,22 +70,23 @@ dataStore.subscribe(() => {
   }
 });
 
-const unloadedData = dataStore.get(`unloaded`);
+const loadingData = dataStore.get(`unloaded`)?.actions.load();
 
-if (unloadedData) {
-  const loadingData = unloadedData.actions.load();
+if (loadingData) {
+  try {
+    const response = await fetch(`https://example.com`);
+    const dataValue = await response.text();
 
-  fetch(`https://example.com`)
-    .then(async (response) => {
-      if (loadingData === dataStore.get(`loading`)) {
-        loadingData.actions.set(await response.text());
-      }
-    })
-    .catch((error) => {
-      if (loadingData === dataStore.get(`loading`)) {
-        loadingData.actions.fail({error});
-      }
-    });
+    // Set data only if the snapshot is not stale.
+    if (loadingData === dataStore.get(`loading`)) {
+      loadingData.actions.set(dataValue);
+    }
+  } catch (error) {
+    // Fail only if the snapshot is not stale.
+    if (loadingData === dataStore.get(`loading`)) {
+      loadingData.actions.fail({error});
+    }
+  }
 }
 ```
 
