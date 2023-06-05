@@ -52,30 +52,30 @@ const dataStore = createStore({
 });
 
 dataStore.subscribe(() => {
-  const data = dataStore.get();
+  const dataSnapshot = dataStore.get();
 
-  if (data.state === `loaded`) {
-    console.log(`Data loaded:`, data.value);
+  if (dataSnapshot.state === `loaded`) {
+    console.log(`Data loaded:`, dataSnapshot.value);
   } else {
-    console.log(`State changed:`, data.state);
+    console.log(`State changed:`, dataSnapshot.state);
   }
 });
 
-const loadingData = dataStore.get(`unloaded`)?.actions.load();
+const loadingDataSnapshot = dataStore.get(`unloaded`)?.actions.load();
 
-if (loadingData) {
+if (loadingDataSnapshot) {
   try {
     const response = await fetch(`https://example.com`);
-    const dataValue = await response.text();
+    const data = await response.text();
 
     // Set data only if the snapshot is not stale.
-    if (loadingData === dataStore.get(`loading`)) {
-      loadingData.actions.set(dataValue);
+    if (loadingDataSnapshot === dataStore.get(`loading`)) {
+      loadingDataSnapshot.actions.set(data);
     }
   } catch (error) {
     // Fail only if the snapshot is not stale.
-    if (loadingData === dataStore.get(`loading`)) {
-      loadingData.actions.fail({error});
+    if (loadingDataSnapshot === dataStore.get(`loading`)) {
+      loadingDataSnapshot.actions.fail({error});
     }
   }
 }

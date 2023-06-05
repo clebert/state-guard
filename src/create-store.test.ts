@@ -18,81 +18,73 @@ const transitionsMap = {
   soonRed: {setRed: `red`},
 } as const;
 
-const redValue = {color: `#FF0000`} as const;
-const yellowValue = {color: `#FFFF00`} as const;
-const greenValue = {color: `#00FF00`} as const;
+const red = {color: `#FF0000`} as const;
+const yellow = {color: `#FFFF00`} as const;
+const green = {color: `#00FF00`} as const;
 
 describe(`Store`, () => {
   let trafficLightStore: Store<typeof valueSchemaMap, typeof transitionsMap>;
 
   beforeEach(() => {
-    trafficLightStore = createStore({
-      initialState: `red`,
-      initialValue: redValue,
-      valueSchemaMap,
-      transitionsMap,
-    });
+    trafficLightStore = createStore({initialState: `red`, initialValue: red, valueSchemaMap, transitionsMap});
   });
 
   test(`state machine snapshots and transitions`, () => {
-    const redTrafficLight = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
 
-    expect(trafficLightStore.get()).toBe(redTrafficLight);
-    expect(trafficLightStore.get(`red`)).toBe(redTrafficLight);
+    expect(trafficLightStore.get()).toBe(redTrafficLightSnapshot);
+    expect(trafficLightStore.get(`red`)).toBe(redTrafficLightSnapshot);
     expect(trafficLightStore.get(`soonGreen`)).toBe(undefined);
     expect(trafficLightStore.get(`green`)).toBe(undefined);
     expect(trafficLightStore.get(`soonRed`)).toBe(undefined);
-    expect(redTrafficLight.state).toBe(`red`);
-    expect(redTrafficLight.value).toBe(redValue);
-    expect(redTrafficLight.value).toBe(redTrafficLight.value);
+    expect(redTrafficLightSnapshot.state).toBe(`red`);
+    expect(redTrafficLightSnapshot.value).toBe(red);
+    expect(redTrafficLightSnapshot.value).toBe(redTrafficLightSnapshot.value);
 
-    const soonGreenTrafficLight =
-      redTrafficLight!.actions.requestGreen(yellowValue);
+    const soonGreenTrafficLightSnapshot = redTrafficLightSnapshot!.actions.requestGreen(yellow);
 
-    expect(trafficLightStore.get()).toBe(soonGreenTrafficLight);
+    expect(trafficLightStore.get()).toBe(soonGreenTrafficLightSnapshot);
     expect(trafficLightStore.get(`red`)).toBe(undefined);
-    expect(trafficLightStore.get(`soonGreen`)).toBe(soonGreenTrafficLight);
+    expect(trafficLightStore.get(`soonGreen`)).toBe(soonGreenTrafficLightSnapshot);
     expect(trafficLightStore.get(`green`)).toBe(undefined);
     expect(trafficLightStore.get(`soonRed`)).toBe(undefined);
-    expect(soonGreenTrafficLight.state).toBe(`soonGreen`);
-    expect(soonGreenTrafficLight.value).toBe(yellowValue);
-    expect(soonGreenTrafficLight.value).toBe(soonGreenTrafficLight.value);
+    expect(soonGreenTrafficLightSnapshot.state).toBe(`soonGreen`);
+    expect(soonGreenTrafficLightSnapshot.value).toBe(yellow);
+    expect(soonGreenTrafficLightSnapshot.value).toBe(soonGreenTrafficLightSnapshot.value);
 
-    const greenTrafficLight =
-      soonGreenTrafficLight!.actions.setGreen(greenValue);
+    const greenTrafficLightSnapshot = soonGreenTrafficLightSnapshot!.actions.setGreen(green);
 
-    expect(trafficLightStore.get()).toBe(greenTrafficLight);
+    expect(trafficLightStore.get()).toBe(greenTrafficLightSnapshot);
     expect(trafficLightStore.get(`red`)).toBe(undefined);
     expect(trafficLightStore.get(`soonGreen`)).toBe(undefined);
-    expect(trafficLightStore.get(`green`)).toBe(greenTrafficLight);
+    expect(trafficLightStore.get(`green`)).toBe(greenTrafficLightSnapshot);
     expect(trafficLightStore.get(`soonRed`)).toBe(undefined);
-    expect(greenTrafficLight.state).toBe(`green`);
-    expect(greenTrafficLight.value).toBe(greenValue);
-    expect(greenTrafficLight.value).toBe(greenTrafficLight.value);
+    expect(greenTrafficLightSnapshot.state).toBe(`green`);
+    expect(greenTrafficLightSnapshot.value).toBe(green);
+    expect(greenTrafficLightSnapshot.value).toBe(greenTrafficLightSnapshot.value);
 
-    const soonRedTrafficLight =
-      greenTrafficLight.actions.requestRed(yellowValue);
+    const soonRedTrafficLightSnapshot = greenTrafficLightSnapshot.actions.requestRed(yellow);
 
-    expect(trafficLightStore.get()).toBe(soonRedTrafficLight);
+    expect(trafficLightStore.get()).toBe(soonRedTrafficLightSnapshot);
     expect(trafficLightStore.get(`red`)).toBe(undefined);
     expect(trafficLightStore.get(`soonGreen`)).toBe(undefined);
     expect(trafficLightStore.get(`green`)).toBe(undefined);
-    expect(trafficLightStore.get(`soonRed`)).toBe(soonRedTrafficLight);
-    expect(soonRedTrafficLight.state).toBe(`soonRed`);
-    expect(soonRedTrafficLight.value).toBe(yellowValue);
-    expect(soonRedTrafficLight.value).toBe(soonRedTrafficLight.value);
+    expect(trafficLightStore.get(`soonRed`)).toBe(soonRedTrafficLightSnapshot);
+    expect(soonRedTrafficLightSnapshot.state).toBe(`soonRed`);
+    expect(soonRedTrafficLightSnapshot.value).toBe(yellow);
+    expect(soonRedTrafficLightSnapshot.value).toBe(soonRedTrafficLightSnapshot.value);
 
-    const redAgainTrafficLight = soonRedTrafficLight.actions.setRed(redValue);
+    const redAgainTrafficLightSnapshot = soonRedTrafficLightSnapshot.actions.setRed(red);
 
-    expect(trafficLightStore.get()).not.toBe(redTrafficLight);
-    expect(trafficLightStore.get()).toBe(redAgainTrafficLight);
-    expect(trafficLightStore.get(`red`)).toBe(redAgainTrafficLight);
+    expect(trafficLightStore.get()).not.toBe(redTrafficLightSnapshot);
+    expect(trafficLightStore.get()).toBe(redAgainTrafficLightSnapshot);
+    expect(trafficLightStore.get(`red`)).toBe(redAgainTrafficLightSnapshot);
     expect(trafficLightStore.get(`soonGreen`)).toBe(undefined);
     expect(trafficLightStore.get(`green`)).toBe(undefined);
     expect(trafficLightStore.get(`soonRed`)).toBe(undefined);
-    expect(redAgainTrafficLight.state).toBe(`red`);
-    expect(redAgainTrafficLight.value).toBe(redValue);
-    expect(redAgainTrafficLight.value).toBe(redAgainTrafficLight.value);
+    expect(redAgainTrafficLightSnapshot.state).toBe(`red`);
+    expect(redAgainTrafficLightSnapshot.value).toBe(red);
+    expect(redAgainTrafficLightSnapshot.value).toBe(redAgainTrafficLightSnapshot.value);
   });
 
   test(`invalid values`, () => {
@@ -112,39 +104,37 @@ describe(`Store`, () => {
       transitionsMap: {current: {set: `current`}},
     });
 
-    expect(() => store.get().actions.set(Math.PI)).toThrow(
-      `Invalid new value.`,
-    );
+    expect(() => store.get().actions.set(Math.PI)).toThrow(`Invalid new value.`);
   });
 
   test(`stale snapshots`, () => {
-    const redTrafficLight = trafficLightStore.get(`red`)!;
-    const {actions} = redTrafficLight;
+    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const {actions} = redTrafficLightSnapshot;
     const {requestGreen} = actions;
 
-    requestGreen(yellowValue);
+    requestGreen(yellow);
 
     const message = `Stale snapshot.`;
 
-    expect(() => redTrafficLight.state).toThrow(message);
-    expect(() => redTrafficLight.value).toThrow(message);
-    expect(() => redTrafficLight.actions).toThrow(message);
+    expect(() => redTrafficLightSnapshot.state).toThrow(message);
+    expect(() => redTrafficLightSnapshot.value).toThrow(message);
+    expect(() => redTrafficLightSnapshot.actions).toThrow(message);
     expect(() => actions.requestGreen).toThrow(message);
-    expect(() => requestGreen(yellowValue)).toThrow(message);
+    expect(() => requestGreen(yellow)).toThrow(message);
   });
 
   test(`unknown actions`, () => {
-    const redTrafficLight = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
     const message = `Unknown action.`;
 
-    expect(() => (redTrafficLight.actions as any).requestRed).toThrow(message);
-    expect(() => (redTrafficLight.actions as any)[Symbol()]).toThrow(message);
+    expect(() => (redTrafficLightSnapshot.actions as any).requestRed).toThrow(message);
+    expect(() => (redTrafficLightSnapshot.actions as any)[Symbol()]).toThrow(message);
   });
 
   test(`subscriptions`, () => {
     let expectedState: keyof typeof valueSchemaMap = `soonGreen`;
 
-    const redTrafficLight = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
 
     const listener1 = jest.fn(() => {
       expect(trafficLightStore.get().state).toBe(expectedState);
@@ -163,8 +153,7 @@ describe(`Store`, () => {
     expect(listener1).toBeCalledTimes(0);
     expect(listener2).toBeCalledTimes(0);
 
-    const soonGreenTrafficLight =
-      redTrafficLight.actions.requestGreen(yellowValue);
+    const soonGreenTrafficLight = redTrafficLightSnapshot.actions.requestGreen(yellow);
 
     expect(listener1).toBeCalledTimes(1);
     expect(listener2).toBeCalledTimes(1);
@@ -173,41 +162,37 @@ describe(`Store`, () => {
 
     expectedState = `green`;
 
-    const greenTrafficLight =
-      soonGreenTrafficLight.actions.setGreen(greenValue);
+    const greenTrafficLightSnapshot = soonGreenTrafficLight.actions.setGreen(green);
 
     expect(listener1).toBeCalledTimes(1);
     expect(listener2).toBeCalledTimes(2);
 
     abortController.abort();
-    greenTrafficLight.actions.requestRed(yellowValue);
+    greenTrafficLightSnapshot.actions.requestRed(yellow);
 
     expect(listener1).toBeCalledTimes(1);
     expect(listener2).toBeCalledTimes(2);
   });
 
   test(`illegal state changes and rollback behavior`, () => {
-    const redTrafficLight = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
 
     const unsubscribe = trafficLightStore.subscribe(() => {
-      trafficLightStore.get(`soonGreen`)?.actions.setGreen(greenValue);
+      trafficLightStore.get(`soonGreen`)?.actions.setGreen(green);
     });
 
-    expect(() => redTrafficLight.actions.requestGreen(yellowValue)).toThrow(
-      `Illegal state change.`,
-    );
+    expect(() => redTrafficLightSnapshot.actions.requestGreen(yellow)).toThrow(`Illegal state change.`);
 
     unsubscribe();
 
-    expect(trafficLightStore.get()).toBe(redTrafficLight);
+    expect(trafficLightStore.get()).toBe(redTrafficLightSnapshot);
     expect(trafficLightStore.get().state).toBe(`red`);
-    expect(trafficLightStore.get().value).toEqual(redValue);
+    expect(trafficLightStore.get().value).toEqual(red);
 
-    const soonGreenTrafficLight =
-      redTrafficLight.actions.requestGreen(yellowValue);
+    const soonGreenTrafficLightSnapshot = redTrafficLightSnapshot.actions.requestGreen(yellow);
 
-    expect(soonGreenTrafficLight.state).toBe(`soonGreen`);
-    expect(soonGreenTrafficLight.value).toEqual(yellowValue);
+    expect(soonGreenTrafficLightSnapshot.state).toBe(`soonGreen`);
+    expect(soonGreenTrafficLightSnapshot.value).toEqual(yellow);
   });
 
   test(`empty state edge case`, () => {
@@ -227,47 +212,23 @@ describe(`Store`, () => {
     const {state, value, actions} = trafficLightStore.get();
 
     void (state satisfies 'red' | 'soonGreen' | 'green' | 'soonRed');
-
-    void (value satisfies
-      | typeof redValue
-      | typeof yellowValue
-      | typeof greenValue);
+    void (value satisfies typeof red | typeof yellow | typeof green);
 
     void (actions satisfies
-      | {
-          requestGreen: (
-            newValue: typeof yellowValue,
-          ) => InferSnapshot<typeof trafficLightStore, 'soonGreen'>;
-        }
-      | {
-          setGreen: (
-            newValue: typeof greenValue,
-          ) => InferSnapshot<typeof trafficLightStore, 'green'>;
-        }
-      | {
-          requestRed: (
-            newValue: typeof yellowValue,
-          ) => InferSnapshot<typeof trafficLightStore, 'soonRed'>;
-        }
-      | {
-          setRed: (
-            newValue: typeof redValue,
-          ) => InferSnapshot<typeof trafficLightStore, 'red'>;
-        });
+      | {requestGreen: (newValue: typeof yellow) => InferSnapshot<typeof trafficLightStore, 'soonGreen'>}
+      | {setGreen: (newValue: typeof green) => InferSnapshot<typeof trafficLightStore, 'green'>}
+      | {requestRed: (newValue: typeof yellow) => InferSnapshot<typeof trafficLightStore, 'soonRed'>}
+      | {setRed: (newValue: typeof red) => InferSnapshot<typeof trafficLightStore, 'red'>});
   });
 
   test(`"red" snapshot types`, () => {
     const {state, value, actions} = trafficLightStore.get(`red`)!;
 
     void (state satisfies 'red' | undefined);
-    void (value satisfies typeof redValue | undefined);
+    void (value satisfies typeof red | undefined);
 
     void (actions satisfies
-      | {
-          requestGreen: (
-            newValue: typeof yellowValue,
-          ) => InferSnapshot<typeof trafficLightStore, 'soonGreen'>;
-        }
+      | {requestGreen: (newValue: typeof yellow) => InferSnapshot<typeof trafficLightStore, 'soonGreen'>}
       | undefined);
   });
 
@@ -275,14 +236,10 @@ describe(`Store`, () => {
     const {state, value, actions} = trafficLightStore.get(`soonGreen`) ?? {};
 
     void (state satisfies 'soonGreen' | undefined);
-    void (value satisfies typeof yellowValue | undefined);
+    void (value satisfies typeof yellow | undefined);
 
     void (actions satisfies
-      | {
-          setGreen: (
-            newValue: typeof greenValue,
-          ) => InferSnapshot<typeof trafficLightStore, 'green'>;
-        }
+      | {setGreen: (newValue: typeof green) => InferSnapshot<typeof trafficLightStore, 'green'>}
       | undefined);
   });
 
@@ -290,14 +247,10 @@ describe(`Store`, () => {
     const {state, value, actions} = trafficLightStore.get(`green`) ?? {};
 
     void (state satisfies 'green' | undefined);
-    void (value satisfies typeof greenValue | undefined);
+    void (value satisfies typeof green | undefined);
 
     void (actions satisfies
-      | {
-          requestRed: (
-            newValue: typeof yellowValue,
-          ) => InferSnapshot<typeof trafficLightStore, 'soonRed'>;
-        }
+      | {requestRed: (newValue: typeof yellow) => InferSnapshot<typeof trafficLightStore, 'soonRed'>}
       | undefined);
   });
 
@@ -305,14 +258,10 @@ describe(`Store`, () => {
     const {state, value, actions} = trafficLightStore.get(`soonRed`) ?? {};
 
     void (state satisfies 'soonRed' | undefined);
-    void (value satisfies typeof yellowValue | undefined);
+    void (value satisfies typeof yellow | undefined);
 
     void (actions satisfies
-      | {
-          setRed: (
-            newValue: typeof redValue,
-          ) => InferSnapshot<typeof trafficLightStore, 'red'>;
-        }
+      | {setRed: (newValue: typeof red) => InferSnapshot<typeof trafficLightStore, 'red'>}
       | undefined);
   });
 });
