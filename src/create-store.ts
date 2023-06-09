@@ -1,22 +1,20 @@
-import type {z} from 'zod';
-
 export type Store<
-  TValueSchemaMap extends ValueSchemaMap,
-  TTransitionsMap extends TransitionsMap<TValueSchemaMap>,
+  TTransformerMap extends TransformerMap,
+  TTransitionsMap extends TransitionsMap<TTransformerMap>,
 > = {
   readonly get: <
-    TExpectedState extends keyof TValueSchemaMap | undefined = undefined,
+    TExpectedState extends keyof TTransformerMap | undefined = undefined,
   >(
     expectedState?: TExpectedState,
-  ) => TExpectedState extends keyof TValueSchemaMap
-    ? Snapshot<TValueSchemaMap, TTransitionsMap, TExpectedState> | undefined
+  ) => TExpectedState extends keyof TTransformerMap
+    ? Snapshot<TTransformerMap, TTransitionsMap, TExpectedState> | undefined
     : {
-        [TState in keyof TValueSchemaMap]: Snapshot<
-          TValueSchemaMap,
+        [TState in keyof TTransformerMap]: Snapshot<
+          TTransformerMap,
           TTransitionsMap,
           TState
         >;
-      }[keyof TValueSchemaMap];
+      }[keyof TTransformerMap];
 
   readonly subscribe: (
     listener: () => void,
@@ -24,67 +22,67 @@ export type Store<
   ) => () => void;
 };
 
-export type ValueSchemaMap = Readonly<Record<string, z.ZodSchema<any>>>;
+export type TransformerMap = Readonly<Record<string, (...args: any[]) => any>>;
 
-export type TransitionsMap<TValueSchemaMap extends ValueSchemaMap> = Readonly<
-  Record<keyof TValueSchemaMap, Readonly<Record<string, keyof TValueSchemaMap>>>
+export type TransitionsMap<TTransformerMap extends TransformerMap> = Readonly<
+  Record<keyof TTransformerMap, Readonly<Record<string, keyof TTransformerMap>>>
 >;
 
 export interface Snapshot<
-  TValueSchemaMap extends ValueSchemaMap,
-  TTransitionsMap extends TransitionsMap<TValueSchemaMap>,
-  TState extends keyof TValueSchemaMap,
+  TTransformerMap extends TransformerMap,
+  TTransitionsMap extends TransitionsMap<TTransformerMap>,
+  TState extends keyof TTransformerMap,
 > {
   readonly state: TState;
-  readonly value: z.TypeOf<TValueSchemaMap[TState]>;
-  readonly actions: InferActions<TValueSchemaMap, TTransitionsMap, TState>;
+  readonly value: ReturnType<TTransformerMap[TState]>;
+  readonly actions: InferActions<TTransformerMap, TTransitionsMap, TState>;
 }
 
 export type InferActions<
-  TValueSchemaMap extends ValueSchemaMap,
-  TTransitionsMap extends TransitionsMap<TValueSchemaMap>,
-  TState extends keyof TValueSchemaMap,
+  TTransformerMap extends TransformerMap,
+  TTransitionsMap extends TransitionsMap<TTransformerMap>,
+  TState extends keyof TTransformerMap,
 > = {
   readonly [TActionName in keyof TTransitionsMap[TState]]: (
-    newValue: z.TypeOf<TValueSchemaMap[TTransitionsMap[TState][TActionName]]>,
+    ...args: Parameters<TTransformerMap[TTransitionsMap[TState][TActionName]]>
   ) => Snapshot<
-    TValueSchemaMap,
+    TTransformerMap,
     TTransitionsMap,
     TTransitionsMap[TState][TActionName]
   >;
 };
 
 export type InferSnapshot<TStore, TState> = TStore extends Store<
-  infer TValueSchemaMap,
+  infer TTransformerMap,
   infer TTransitionsMap
 >
-  ? TState extends keyof TValueSchemaMap
-    ? Snapshot<TValueSchemaMap, TTransitionsMap, TState>
+  ? TState extends keyof TTransformerMap
+    ? Snapshot<TTransformerMap, TTransitionsMap, TState>
     : never
   : never;
 
 export interface StoreInit<
-  TValueSchemaMap extends ValueSchemaMap,
-  TTransitionsMap extends TransitionsMap<TValueSchemaMap>,
-  TInitialState extends keyof TValueSchemaMap,
+  TTransformerMap extends TransformerMap,
+  TTransitionsMap extends TransitionsMap<TTransformerMap>,
+  TInitialState extends keyof TTransformerMap,
 > {
   readonly initialState: TInitialState;
-  readonly initialValue: z.TypeOf<TValueSchemaMap[TInitialState]>;
-  readonly valueSchemaMap: TValueSchemaMap;
+  readonly initialValue: ReturnType<TTransformerMap[TInitialState]>;
+  readonly transformerMap: TTransformerMap;
   readonly transitionsMap: TTransitionsMap;
 }
 
 export function createStore<
-  const TValueSchemaMap extends ValueSchemaMap,
-  const TTransitionsMap extends TransitionsMap<TValueSchemaMap>,
-  const TInitialState extends keyof TValueSchemaMap,
+  const TTransformerMap extends TransformerMap,
+  const TTransitionsMap extends TransitionsMap<TTransformerMap>,
+  const TInitialState extends keyof TTransformerMap,
 >({
   initialState,
   initialValue,
-  valueSchemaMap,
+  transformerMap,
   transitionsMap,
-}: StoreInit<TValueSchemaMap, TTransitionsMap, TInitialState>): Store<
-  TValueSchemaMap,
+}: StoreInit<TTransformerMap, TTransitionsMap, TInitialState>): Store<
+  TTransformerMap,
   TTransitionsMap
 > {
   const listeners = new Set<() => void>();
@@ -103,24 +101,15 @@ export function createStore<
     }
   }
 
-  const initialValueResult =
-    valueSchemaMap[initialState]!.safeParse(initialValue);
-
-  if (!initialValueResult.success) {
-    console.error(initialValueResult.error.format());
-
-    throw new Error(`Invalid initial value.`);
-  }
-
-  let actualState: keyof TValueSchemaMap = initialState;
+  let actualState: keyof TTransformerMap = initialState;
   let actualValue = initialValue;
   let actualVersion = Symbol();
   let actualSnapshot = createSnapshot();
 
   function createSnapshot(): Snapshot<
-    TValueSchemaMap,
+    TTransformerMap,
     TTransitionsMap,
-    keyof TValueSchemaMap
+    keyof TTransformerMap
   > {
     const version = actualVersion;
 
@@ -145,21 +134,12 @@ export function createStore<
             throw new Error(`Unknown action.`);
           }
 
-          return (newValue: any) => {
+          return (...args: any[]) => {
             if (notifying) {
               throw new Error(`Illegal state change.`);
             }
 
             assertVersion();
-
-            const newValueResult =
-              valueSchemaMap[newState]!.safeParse(newValue);
-
-            if (!newValueResult.success) {
-              console.error(newValueResult.error.format());
-
-              throw new Error(`Invalid new value.`);
-            }
 
             const previousState = actualState;
             const previousValue = actualValue;
@@ -167,7 +147,7 @@ export function createStore<
             const previousSnapshot = actualSnapshot;
 
             actualState = newState;
-            actualValue = newValue;
+            actualValue = transformerMap[newState]!(...args);
             actualVersion = Symbol();
             actualSnapshot = createSnapshot();
 

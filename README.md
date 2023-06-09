@@ -3,44 +3,42 @@
 > Type-safe, deterministic state management with state machines and automatic
 > snapshot invalidation.
 
-StateGuard is a library for managing state in TypeScript web projects,
-leveraging the [Zod](https://github.com/colinhacks/zod) validation library to
-ensure type safety and deterministic behavior. It offers a state machine with
-encapsulated actions and automatic invalidation of stale snapshots, which helps
-avoid errors and enforce proper design patterns.
+StateGuard is a library for managing state in TypeScript web projects, focusing
+on type safety and deterministic behavior. It provides a state machine with
+encapsulated actions, allows you to define transformers for each state and
+offers automatic invalidation of stale snapshots, helping you avoid errors and
+enforce proper design patterns.
 
 ## Installation
 
 Using npm:
 
 ```sh
-npm install state-guard zod
+npm install state-guard
 ```
 
 Using Yarn:
 
 ```sh
-yarn add state-guard zod
+yarn add state-guard
 ```
 
 ## Usage Example
 
-Here's how to use StateGuard and Zod together to define a simple state machine
-for data loading:
+Here's how to use StateGuard to define a simple state machine for data loading:
 
 ```js
-import {createStore} from './lib/index.js';
-import {z} from 'zod';
+import {createStore} from 'state-guard';
 
 const dataStore = createStore({
   initialState: `unloaded`,
   initialValue: undefined,
-  valueSchemaMap: {
-    unloaded: z.void(),
-    loading: z.void(),
-    loaded: z.string(),
-    updating: z.string(),
-    failed: z.object({error: z.unknown()}).strict(),
+  transformerMap: {
+    unloaded: () => undefined,
+    loading: () => undefined,
+    loaded: /** @param {string} data */ (data) => data,
+    updating: /** @param {string} data */ (data) => data,
+    failed: /** @param {unknown} error */ (error) => ({error}),
   },
   transitionsMap: {
     unloaded: {load: `loading`},

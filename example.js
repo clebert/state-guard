@@ -1,15 +1,14 @@
 import {createStore} from './lib/index.js';
-import {z} from 'zod';
 
 const dataStore = createStore({
   initialState: `unloaded`,
   initialValue: undefined,
-  valueSchemaMap: {
-    unloaded: z.void(),
-    loading: z.void(),
-    loaded: z.string(),
-    updating: z.string(),
-    failed: z.object({error: z.unknown()}).strict(),
+  transformerMap: {
+    unloaded: () => undefined,
+    loading: () => undefined,
+    loaded: /** @param {string} data */ (data) => data,
+    updating: /** @param {string} data */ (data) => data,
+    failed: /** @param {unknown} error */ (error) => ({error}),
   },
   transitionsMap: {
     unloaded: {load: `loading`},
