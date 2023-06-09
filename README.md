@@ -100,6 +100,22 @@ dataStore.subscribe(() => {
 dataStore.get(`idle`)?.actions.loadData();
 ```
 
+6. Implement a React component using the `useSyncExternalStore` hook for state
+   synchronization.
+
+```js
+import * as React from 'react';
+
+const YourComponent = () => {
+  const snapshot = React.useSyncExternalStore(
+    dataStore.subscribe,
+    dataStore.get,
+  );
+
+  // Your component logic and rendering.
+};
+```
+
 ### Ensuring Snapshot Freshness
 
 In some cases, a snapshot taken can become stale, for example, when used after
