@@ -27,79 +27,77 @@ yarn add state-guard
 
 Here's how to use StateGuard to define a simple state machine for data loading:
 
+1. Import `createStore` function from the StateGuard package.
+
 ```js
 import {createStore} from 'state-guard';
-
-const dataStore = createStore({
-  initialState: `unloaded`,
-  initialValue: undefined,
-  transformerMap: {
-    unloaded: () => undefined,
-    loading: () => undefined,
-    loaded: /** @param {string} data */ (data) => data,
-    updating: /** @param {string} data */ (data) => data,
-    failed: /** @param {unknown} error */ (error) => ({error}),
-  },
-  transitionsMap: {
-    unloaded: {load: `loading`},
-    loading: {set: `loaded`, fail: `failed`},
-    loaded: {update: `updating`},
-    updating: {set: `loaded`, fail: `failed`},
-    failed: {reset: `unloaded`},
-  },
-});
-
-dataStore.subscribe(() => {
-  const dataSnapshot = dataStore.get();
-
-  if (dataSnapshot.state === `loaded`) {
-    console.log(`Data loaded:`, dataSnapshot.value);
-  } else {
-    console.log(`State changed:`, dataSnapshot.state);
-  }
-});
-
-const loadingDataSnapshot = dataStore.get(`unloaded`)?.actions.load();
-
-if (loadingDataSnapshot) {
-  try {
-    const response = await fetch(`https://example.com`);
-    const data = await response.text();
-
-    // Set data only if the snapshot is not stale.
-    if (loadingDataSnapshot === dataStore.get(`loading`)) {
-      loadingDataSnapshot.actions.set(data);
-    }
-  } catch (error) {
-    // Fail only if the snapshot is not stale.
-    if (loadingDataSnapshot === dataStore.get(`loading`)) {
-      loadingDataSnapshot.actions.fail({error});
-    }
-  }
-}
 ```
 
-### Using StateGuard with React
-
-To use a StateGuard store in a React application, you can utilize the
-`useSyncExternalStore` hook. This hook efficiently synchronizes the store state
-with a React component, ensuring your component renders with the most up-to-date
-state snapshot.
-
-Call the `useSyncExternalStore` hook inside your component, passing the
-`store.subscribe` function and a selector function that returns the desired
-state snapshot:
+2. Create a `dataStore` using the `createStore` function, with the initial
+   state, value, a transformer map, and transitions map.
 
 ```js
-import * as React from 'react';
+const dataStore = createStore({
+  initialState: `idle`,
+  initialValue: undefined,
+  transformerMap: {
+    idle: () => undefined,
+    loadingData: () => undefined,
+    loadedData: /** @param {string} data */ (data) => ({data}),
+    error: /** @param {unknown} reason */ (reason) => ({reason}),
+  },
+  transitionsMap: {
+    idle: {loadData: `loadingData`},
+    loadingData: {setLoadedData: `loadedData`, setError: `error`},
+    loadedData: {reset: `idle`},
+    error: {reset: `idle`},
+  },
+});
+```
 
-const YourComponent = () => {
-  const data = React.useSyncExternalStore(dataStore.subscribe, () =>
-    dataStore.get(),
-  );
+3. Subscribe to `dataStore` for data loading, ensuring the proper handling of
+   valid and error cases.
 
-  // Your component logic and rendering.
-};
+```js
+dataStore.subscribe(() => {
+  const loadingDataSnapshot = dataStore.get(`loadingData`);
+
+  if (!loadingDataSnapshot) {
+    return;
+  }
+
+  fetch(`https://example.com`)
+    .then(async (response) => {
+      const data = await response.text();
+
+      // Set data only if the snapshot is not stale.
+      if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
+        loadingDataSnapshot.actions.setLoadedData(data);
+      }
+    })
+    .catch((reason) => {
+      // Set error only if the snapshot is not stale.
+      if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
+        loadingDataSnapshot.actions.setError(reason);
+      }
+    });
+});
+```
+
+4. Subscribe to `dataStore` to log the current state and value.
+
+```js
+dataStore.subscribe(() => {
+  const snapshot = dataStore.get();
+
+  console.log(snapshot.state, snapshot.value);
+});
+```
+
+5. Trigger the `loadData` action in the `idle` state.
+
+```js
+dataStore.get(`idle`)?.actions.loadData();
 ```
 
 ### Ensuring Snapshot Freshness

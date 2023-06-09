@@ -1,49 +1,50 @@
 import {createStore} from './lib/index.js';
 
 const dataStore = createStore({
-  initialState: `unloaded`,
+  initialState: `idle`,
   initialValue: undefined,
   transformerMap: {
-    unloaded: () => undefined,
-    loading: () => undefined,
-    loaded: /** @param {string} data */ (data) => data,
-    updating: /** @param {string} data */ (data) => data,
-    failed: /** @param {unknown} error */ (error) => ({error}),
+    idle: () => undefined,
+    loadingData: () => undefined,
+    loadedData: /** @param {string} data */ (data) => ({data}),
+    error: /** @param {unknown} reason */ (reason) => ({reason}),
   },
   transitionsMap: {
-    unloaded: {load: `loading`},
-    loading: {set: `loaded`, fail: `failed`},
-    loaded: {update: `updating`},
-    updating: {set: `loaded`, fail: `failed`},
-    failed: {reset: `unloaded`},
+    idle: {loadData: `loadingData`},
+    loadingData: {setLoadedData: `loadedData`, setError: `error`},
+    loadedData: {reset: `idle`},
+    error: {reset: `idle`},
   },
 });
 
 dataStore.subscribe(() => {
-  const dataSnapshot = dataStore.get();
+  const loadingDataSnapshot = dataStore.get(`loadingData`);
 
-  if (dataSnapshot.state === `loaded`) {
-    console.log(`Data loaded:`, dataSnapshot.value);
-  } else {
-    console.log(`State changed:`, dataSnapshot.state);
+  if (!loadingDataSnapshot) {
+    return;
   }
+
+  fetch(`https://example.com`)
+    .then(async (response) => {
+      const data = await response.text();
+
+      // Set data only if the snapshot is not stale.
+      if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
+        loadingDataSnapshot.actions.setLoadedData(data);
+      }
+    })
+    .catch((reason) => {
+      // Set error only if the snapshot is not stale.
+      if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
+        loadingDataSnapshot.actions.setError(reason);
+      }
+    });
 });
 
-const loadingDataSnapshot = dataStore.get(`unloaded`)?.actions.load();
+dataStore.subscribe(() => {
+  const snapshot = dataStore.get();
 
-if (loadingDataSnapshot) {
-  try {
-    const response = await fetch(`https://example.com`);
-    const data = await response.text();
+  console.log(snapshot.state, snapshot.value);
+});
 
-    // Set data only if the snapshot is not stale.
-    if (loadingDataSnapshot === dataStore.get(`loading`)) {
-      loadingDataSnapshot.actions.set(data);
-    }
-  } catch (error) {
-    // Fail only if the snapshot is not stale.
-    if (loadingDataSnapshot === dataStore.get(`loading`)) {
-      loadingDataSnapshot.actions.fail({error});
-    }
-  }
-}
+dataStore.get(`idle`)?.actions.loadData();
