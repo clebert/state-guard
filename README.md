@@ -109,9 +109,8 @@ dataStore.get(`idle`)?.actions.loadData();
 import * as React from 'react';
 
 const YourComponent = () => {
-  const snapshot = React.useSyncExternalStore(
-    dataStore.subscribe,
-    dataStore.get,
+  const snapshot = React.useSyncExternalStore(dataStore.subscribe, () =>
+    dataStore.get(),
   );
 
   // Your component logic and rendering.
