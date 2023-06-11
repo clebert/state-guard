@@ -1,7 +1,7 @@
 import type {InferSnapshot, Store} from './create-store.js';
 
 import {createStore} from './create-store.js';
-import {beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
 
 const transformerMap = {
   red: (color: '#FF0000') => ({color}),
@@ -23,6 +23,7 @@ const greenColor = `#00FF00` as const;
 
 describe(`Store`, () => {
   let trafficLightStore: Store<typeof transformerMap, typeof transitionsMap>;
+  let consoleErrorSpy: jest.SpiedFunction<typeof console.error>;
 
   beforeEach(() => {
     trafficLightStore = createStore({
@@ -31,6 +32,12 @@ describe(`Store`, () => {
       transformerMap,
       transitionsMap,
     });
+
+    consoleErrorSpy = jest.spyOn(console, `error`).mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   test(`state machine snapshots and transitions`, () => {
@@ -91,30 +98,6 @@ describe(`Store`, () => {
     expect(redAgainTrafficLightSnapshot.value).toBe(redAgainTrafficLightSnapshot.value);
   });
 
-  test(`stale snapshots`, () => {
-    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
-    const {actions} = redTrafficLightSnapshot;
-    const {requestGreen} = actions;
-
-    requestGreen(yellowColor);
-
-    const message = `Stale snapshot.`;
-
-    expect(() => redTrafficLightSnapshot.state).toThrow(message);
-    expect(() => redTrafficLightSnapshot.value).toThrow(message);
-    expect(() => redTrafficLightSnapshot.actions).toThrow(message);
-    expect(() => actions.requestGreen).toThrow(message);
-    expect(() => requestGreen(yellowColor)).toThrow(message);
-  });
-
-  test(`unknown actions`, () => {
-    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
-    const message = `Unknown action.`;
-
-    expect(() => (redTrafficLightSnapshot.actions as any).requestRed).toThrow(message);
-    expect(() => (redTrafficLightSnapshot.actions as any)[Symbol()]).toThrow(message);
-  });
-
   test(`subscriptions`, () => {
     let expectedState: keyof typeof transformerMap = `soonGreen`;
 
@@ -158,25 +141,111 @@ describe(`Store`, () => {
     expect(listener2).toBeCalledTimes(2);
   });
 
-  test(`illegal state changes and rollback behavior`, () => {
+  test(`stale snapshots`, () => {
+    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const {actions} = redTrafficLightSnapshot;
+    const {requestGreen} = actions;
+
+    requestGreen(yellowColor);
+
+    const message = `Stale snapshot.`;
+
+    expect(() => redTrafficLightSnapshot.state).toThrow(message);
+    expect(() => redTrafficLightSnapshot.value).toThrow(message);
+    expect(() => redTrafficLightSnapshot.actions).toThrow(message);
+    expect(() => actions.requestGreen).toThrow(message);
+    expect(() => requestGreen(yellowColor)).toThrow(message);
+  });
+
+  test(`unknown actions`, () => {
+    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const message = `Unknown action.`;
+
+    expect(() => (redTrafficLightSnapshot.actions as any).requestRed).toThrow(message);
+    expect(() => (redTrafficLightSnapshot.actions as any)[Symbol()]).toThrow(message);
+  });
+
+  test(`illegal transitions`, () => {
     const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
 
-    const unsubscribe = trafficLightStore.subscribe(() => {
-      trafficLightStore.get(`soonGreen`)?.actions.setGreen(greenColor);
+    trafficLightStore.subscribe(() => {
+      trafficLightStore.get(`soonGreen`)!.actions.setGreen(greenColor);
     });
-
-    expect(() => redTrafficLightSnapshot.actions.requestGreen(yellowColor)).toThrow(`Illegal state change.`);
-
-    unsubscribe();
-
-    expect(trafficLightStore.get()).toBe(redTrafficLightSnapshot);
-    expect(trafficLightStore.get().state).toBe(`red`);
-    expect(trafficLightStore.get().value).toEqual({color: redColor});
 
     const soonGreenTrafficLightSnapshot = redTrafficLightSnapshot.actions.requestGreen(yellowColor);
 
     expect(soonGreenTrafficLightSnapshot.state).toBe(`soonGreen`);
-    expect(soonGreenTrafficLightSnapshot.value).toEqual({color: yellowColor});
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenNthCalledWith(1, new Error(`Illegal transition.`));
+  });
+
+  test(`errors in listener functions do not prevent other listeners from being called subsequently`, () => {
+    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+
+    const listener1 = jest.fn(() => {
+      throw new Error(`oops1`);
+    });
+
+    const listener2 = jest.fn(() => {
+      throw new Error(`oops2`);
+    });
+
+    const listener3 = jest.fn();
+
+    trafficLightStore.subscribe(listener1);
+    trafficLightStore.subscribe(listener2);
+    trafficLightStore.subscribe(listener3);
+
+    expect(listener1).toBeCalledTimes(0);
+    expect(listener2).toBeCalledTimes(0);
+    expect(listener3).toBeCalledTimes(0);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(0);
+
+    const soonGreenTrafficLightSnapshot = redTrafficLightSnapshot.actions.requestGreen(`#FFFF00`);
+
+    expect(listener1).toBeCalledTimes(1);
+    expect(listener2).toBeCalledTimes(1);
+    expect(listener3).toBeCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
+    expect(consoleErrorSpy).toHaveBeenNthCalledWith(1, new Error(`oops1`));
+    expect(consoleErrorSpy).toHaveBeenNthCalledWith(2, new Error(`oops2`));
+
+    soonGreenTrafficLightSnapshot.actions.setGreen(`#00FF00`);
+
+    expect(listener1).toBeCalledTimes(2);
+    expect(listener2).toBeCalledTimes(2);
+    expect(listener3).toBeCalledTimes(2);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(4);
+    expect(consoleErrorSpy).toHaveBeenNthCalledWith(3, new Error(`oops1`));
+    expect(consoleErrorSpy).toHaveBeenNthCalledWith(4, new Error(`oops2`));
+  });
+
+  test(`transformer errors do not affect the current snapshot`, () => {
+    const store = createStore({
+      initialState: `foo`,
+      initialValue: `bar`,
+      transformerMap: {
+        foo: () => `bar`,
+        baz: () => {
+          throw new Error(`oops`);
+        },
+      },
+      transitionsMap: {
+        foo: {baz: `baz`},
+        baz: {foo: `foo`},
+      },
+    });
+
+    const fooSnapshot = store.get(`foo`)!;
+
+    expect(() => {
+      fooSnapshot.actions.baz();
+    }).toThrow(`oops`);
+
+    expect(store.get()).toBe(fooSnapshot);
+    expect(fooSnapshot.state).toBe(`foo`);
+    expect(fooSnapshot.value).toBe(`bar`);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(0);
   });
 
   test(`empty state edge case`, () => {

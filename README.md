@@ -9,6 +9,8 @@ encapsulated actions, allows you to define transformers for each state and
 offers automatic invalidation of stale snapshots, helping you avoid errors and
 enforce proper design patterns.
 
+_✅ 424 B with all dependencies, minified and gzipped._
+
 ## Installation
 
 Using npm:

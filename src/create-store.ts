@@ -92,29 +92,31 @@ export function createStore<
   function notify(): void {
     notifying = true;
 
-    try {
-      for (const listener of listeners) {
+    for (const listener of listeners) {
+      try {
         listener();
+      } catch (error) {
+        console.error(error);
       }
-    } finally {
-      notifying = false;
     }
+
+    notifying = false;
   }
 
-  let actualState: keyof TTransformerMap = initialState;
-  let actualValue = initialValue;
-  let actualVersion = Symbol();
-  let actualSnapshot = createSnapshot();
+  let currentState: keyof TTransformerMap = initialState;
+  let currentValue = initialValue;
+  let currentVersion = Symbol();
+  let currentSnapshot = createSnapshot();
 
   function createSnapshot(): Snapshot<
     TTransformerMap,
     TTransitionsMap,
     keyof TTransformerMap
   > {
-    const version = actualVersion;
+    const version = currentVersion;
 
     function assertVersion(): void {
-      if (version !== actualVersion) {
+      if (version !== currentVersion) {
         throw new Error(`Stale snapshot.`);
       }
     }
@@ -127,7 +129,7 @@ export function createStore<
 
           const newState =
             typeof actionName === `string`
-              ? transitionsMap[actualState]![actionName]
+              ? transitionsMap[currentState]![actionName]
               : undefined;
 
           if (newState === undefined) {
@@ -136,33 +138,21 @@ export function createStore<
 
           return (...args: any[]) => {
             if (notifying) {
-              throw new Error(`Illegal state change.`);
+              throw new Error(`Illegal transition.`);
             }
 
             assertVersion();
 
-            const previousState = actualState;
-            const previousValue = actualValue;
-            const previousVersion = actualVersion;
-            const previousSnapshot = actualSnapshot;
+            const newValue = transformerMap[newState]!(...args);
 
-            actualState = newState;
-            actualValue = transformerMap[newState]!(...args);
-            actualVersion = Symbol();
-            actualSnapshot = createSnapshot();
+            currentState = newState;
+            currentValue = newValue;
+            currentVersion = Symbol();
+            currentSnapshot = createSnapshot();
 
-            try {
-              notify();
-            } catch (error) {
-              actualState = previousState;
-              actualValue = previousValue;
-              actualVersion = previousVersion;
-              actualSnapshot = previousSnapshot;
+            notify();
 
-              throw error;
-            }
-
-            return actualSnapshot;
+            return currentSnapshot;
           };
         },
       },
@@ -172,12 +162,12 @@ export function createStore<
       get state() {
         assertVersion();
 
-        return actualState;
+        return currentState;
       },
       get value() {
         assertVersion();
 
-        return actualValue;
+        return currentValue;
       },
       get actions() {
         assertVersion();
@@ -189,8 +179,8 @@ export function createStore<
 
   return {
     get: (expectedState) => {
-      return expectedState === undefined || expectedState === actualState
-        ? (actualSnapshot as any)
+      return expectedState === undefined || expectedState === currentState
+        ? (currentSnapshot as any)
         : undefined;
     },
     subscribe(listener, {signal} = {}) {
