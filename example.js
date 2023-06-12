@@ -1,44 +1,20 @@
 import {createStore} from './lib/index.js';
 
 const dataStore = createStore({
-  initialState: `idle`,
+  initialState: `initialized`,
   initialValue: undefined,
   transformerMap: {
-    idle: () => undefined,
+    initialized: () => undefined,
     loadingData: () => undefined,
     loadedData: /** @param {string} data */ (data) => ({data}),
     error: /** @param {unknown} reason */ (reason) => ({reason}),
   },
   transitionsMap: {
-    idle: {loadData: `loadingData`},
+    initialized: {loadData: `loadingData`},
     loadingData: {setLoadedData: `loadedData`, setError: `error`},
-    loadedData: {reset: `idle`},
-    error: {reset: `idle`},
+    loadedData: {reset: `initialized`},
+    error: {reset: `initialized`},
   },
-});
-
-dataStore.subscribe(() => {
-  const loadingDataSnapshot = dataStore.get(`loadingData`);
-
-  if (!loadingDataSnapshot) {
-    return;
-  }
-
-  fetch(`https://example.com`)
-    .then(async (response) => {
-      const data = await response.text();
-
-      // Set data only if the snapshot is not stale.
-      if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
-        loadingDataSnapshot.actions.setLoadedData(data);
-      }
-    })
-    .catch((reason) => {
-      // Set error only if the snapshot is not stale.
-      if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
-        loadingDataSnapshot.actions.setError(reason);
-      }
-    });
 });
 
 dataStore.subscribe(() => {
@@ -47,4 +23,20 @@ dataStore.subscribe(() => {
   console.log(snapshot.state, snapshot.value);
 });
 
-dataStore.get(`idle`)?.actions.loadData();
+// @ts-expect-error
+const loadingDataSnapshot = dataStore.get(`initialized`).actions.loadData();
+
+try {
+  const response = await fetch(`https://example.com`);
+  const data = await response.text();
+
+  // Set data only if the snapshot is not stale.
+  if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
+    loadingDataSnapshot.actions.setLoadedData(data);
+  }
+} catch (reason) {
+  // Set error only if the snapshot is not stale.
+  if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
+    loadingDataSnapshot.actions.setError(reason);
+  }
+}
