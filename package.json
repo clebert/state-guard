@@ -1,7 +1,7 @@
 {
   "name": "state-guard",
   "version": "2.2.0",
-  "description": "Type-safe, deterministic state management with state machines and automatic snapshot invalidation.",
+  "description": "Type-safe, deterministic state management featuring state machines and automatic stale snapshot invalidation.",
   "repository": {
     "type": "git",
     "url": "https://github.com/clebert/state-guard.git"

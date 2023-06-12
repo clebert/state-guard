@@ -1,13 +1,13 @@
 # StateGuard
 
-> Type-safe, deterministic state management with state machines and automatic
-> snapshot invalidation.
+> Type-safe, deterministic state management featuring state machines and
+> automatic stale snapshot invalidation.
 
-StateGuard is a library for managing state in TypeScript web projects, focusing
-on type safety and deterministic behavior. It provides a state machine with
-encapsulated actions, allows you to define transformers for each state and
-offers automatic invalidation of stale snapshots, helping you avoid errors and
-enforce proper design patterns.
+StateGuard is a JavaScript library for managing state with an emphasis on type
+safety, enabling seamless integration with TypeScript. It facilitates
+deterministic behavior by offering an encapsulated state machine, user-defined
+actions and state transformers, as well as automatic stale snapshot
+invalidation.
 
 _✅ 415 B with all dependencies, minified and gzipped._
 
