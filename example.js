@@ -23,8 +23,7 @@ dataStore.subscribe(() => {
   console.log(snapshot.state, snapshot.value);
 });
 
-// @ts-expect-error
-const loadingDataSnapshot = dataStore.get(`initialized`).actions.loadData();
+const loadingDataSnapshot = dataStore.assert(`initialized`).actions.loadData();
 
 try {
   const response = await fetch(`https://example.com`);

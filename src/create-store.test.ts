@@ -41,7 +41,7 @@ describe(`Store`, () => {
   });
 
   test(`state machine snapshots and transitions`, () => {
-    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.assert(`red`);
 
     expect(trafficLightStore.get()).toBe(redTrafficLightSnapshot);
     expect(trafficLightStore.get(`red`)).toBe(redTrafficLightSnapshot);
@@ -52,7 +52,7 @@ describe(`Store`, () => {
     expect(redTrafficLightSnapshot.value).toEqual({color: redColor});
     expect(redTrafficLightSnapshot.value).toBe(redTrafficLightSnapshot.value);
 
-    const soonGreenTrafficLightSnapshot = redTrafficLightSnapshot!.actions.requestGreen(yellowColor);
+    const soonGreenTrafficLightSnapshot = redTrafficLightSnapshot.actions.requestGreen(yellowColor);
 
     expect(trafficLightStore.get()).toBe(soonGreenTrafficLightSnapshot);
     expect(trafficLightStore.get(`red`)).toBe(undefined);
@@ -63,7 +63,7 @@ describe(`Store`, () => {
     expect(soonGreenTrafficLightSnapshot.value).toEqual({color: yellowColor});
     expect(soonGreenTrafficLightSnapshot.value).toBe(soonGreenTrafficLightSnapshot.value);
 
-    const greenTrafficLightSnapshot = soonGreenTrafficLightSnapshot!.actions.setGreen(greenColor);
+    const greenTrafficLightSnapshot = soonGreenTrafficLightSnapshot.actions.setGreen(greenColor);
 
     expect(trafficLightStore.get()).toBe(greenTrafficLightSnapshot);
     expect(trafficLightStore.get(`red`)).toBe(undefined);
@@ -101,7 +101,7 @@ describe(`Store`, () => {
   test(`subscriptions`, () => {
     let expectedState: keyof typeof transformerMap = `soonGreen`;
 
-    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.assert(`red`);
 
     const listener1 = jest.fn(() => {
       expect(trafficLightStore.get().state).toBe(expectedState);
@@ -141,8 +141,23 @@ describe(`Store`, () => {
     expect(listener2).toBeCalledTimes(2);
   });
 
+  test(`unexpected states`, () => {
+    const redTrafficLightSnapshot = trafficLightStore.assert(`red`);
+
+    expect(() => trafficLightStore.assert(`soonGreen`)).toThrow(`Unexpected state.`);
+    expect(() => trafficLightStore.assert(`green`)).toThrow(`Unexpected state.`);
+    expect(() => trafficLightStore.assert(`soonRed`)).toThrow(`Unexpected state.`);
+
+    redTrafficLightSnapshot.actions.requestGreen(`#FFFF00`);
+
+    expect(() => trafficLightStore.assert(`red`)).toThrow(`Unexpected state.`);
+    expect(() => trafficLightStore.assert(`soonGreen`)).not.toThrow();
+    expect(() => trafficLightStore.assert(`green`)).toThrow(`Unexpected state.`);
+    expect(() => trafficLightStore.assert(`soonRed`)).toThrow(`Unexpected state.`);
+  });
+
   test(`stale snapshots`, () => {
-    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.assert(`red`);
     const {actions} = redTrafficLightSnapshot;
     const {requestGreen} = actions;
 
@@ -158,7 +173,7 @@ describe(`Store`, () => {
   });
 
   test(`unknown actions`, () => {
-    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.assert(`red`);
     const message = `Unknown action.`;
 
     expect(() => (redTrafficLightSnapshot.actions as any).requestRed).toThrow(message);
@@ -166,10 +181,10 @@ describe(`Store`, () => {
   });
 
   test(`illegal transitions`, () => {
-    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.assert(`red`);
 
     trafficLightStore.subscribe(() => {
-      trafficLightStore.get(`soonGreen`)!.actions.setGreen(greenColor);
+      trafficLightStore.assert(`soonGreen`).actions.setGreen(greenColor);
     });
 
     const soonGreenTrafficLightSnapshot = redTrafficLightSnapshot.actions.requestGreen(yellowColor);
@@ -180,7 +195,7 @@ describe(`Store`, () => {
   });
 
   test(`errors in listener functions do not prevent other listeners from being called subsequently`, () => {
-    const redTrafficLightSnapshot = trafficLightStore.get(`red`)!;
+    const redTrafficLightSnapshot = trafficLightStore.assert(`red`);
 
     const listener1 = jest.fn(() => {
       throw new Error(`oops1`);
@@ -236,7 +251,7 @@ describe(`Store`, () => {
       },
     });
 
-    const fooSnapshot = store.get(`foo`)!;
+    const fooSnapshot = store.assert(`foo`);
 
     expect(() => {
       fooSnapshot.actions.baz();
@@ -258,7 +273,7 @@ describe(`Store`, () => {
 
     expect(store.get(``)).toBe(undefined);
 
-    store.get(`full`)!.actions.empty();
+    store.assert(`full`).actions.empty();
   });
 
   test(`unspecific snapshot types`, () => {
@@ -275,7 +290,7 @@ describe(`Store`, () => {
   });
 
   test(`"red" snapshot types`, () => {
-    const {state, value, actions} = trafficLightStore.get(`red`)!;
+    const {state, value, actions} = trafficLightStore.assert(`red`);
 
     void (state satisfies 'red' | undefined);
     void (value satisfies {color: '#FF0000'} | undefined);

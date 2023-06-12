@@ -9,7 +9,7 @@ encapsulated actions, allows you to define transformers for each state and
 offers automatic invalidation of stale snapshots, helping you avoid errors and
 enforce proper design patterns.
 
-_✅ 424 B with all dependencies, minified and gzipped._
+_✅ 446 B with all dependencies, minified and gzipped._
 
 ## Installation
 
@@ -71,7 +71,7 @@ dataStore.subscribe(() => {
    loading.
 
 ```js
-const loadingDataSnapshot = dataStore.get(`initialized`).actions.loadData();
+const loadingDataSnapshot = dataStore.assert(`initialized`).actions.loadData();
 
 try {
   const response = await fetch(`https://example.com`);

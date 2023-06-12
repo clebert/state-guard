@@ -16,6 +16,10 @@ export type Store<
         >;
       }[keyof TTransformerMap];
 
+  readonly assert: <TExpectedState extends keyof TTransformerMap>(
+    expectedState: TExpectedState,
+  ) => Snapshot<TTransformerMap, TTransitionsMap, TExpectedState>;
+
   readonly subscribe: (
     listener: () => void,
     options?: {readonly signal?: AbortSignal},
@@ -182,6 +186,13 @@ export function createStore<
       return expectedState === undefined || expectedState === currentState
         ? (currentSnapshot as any)
         : undefined;
+    },
+    assert: (expectedState) => {
+      if (expectedState !== currentState) {
+        throw new Error(`Unexpected state.`);
+      }
+
+      return currentSnapshot as any;
     },
     subscribe(listener, {signal} = {}) {
       listeners.add(listener);
