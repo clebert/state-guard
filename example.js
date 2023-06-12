@@ -33,9 +33,9 @@ try {
   if (isLoadingData === dataStore.get(`isLoadingData`)) {
     isLoadingData.actions.setData(data);
   }
-} catch (reason) {
+} catch (error) {
   // Set error only if the snapshot is not stale.
   if (isLoadingData === dataStore.get(`isLoadingData`)) {
-    isLoadingData.actions.setError(reason);
+    isLoadingData.actions.setError(error);
   }
 }
