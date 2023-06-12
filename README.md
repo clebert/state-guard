@@ -9,7 +9,7 @@ encapsulated actions, allows you to define transformers for each state and
 offers automatic invalidation of stale snapshots, helping you avoid errors and
 enforce proper design patterns.
 
-_✅ 446 B with all dependencies, minified and gzipped._
+_✅ 415 B with all dependencies, minified and gzipped._
 
 ## Installation
 
@@ -29,30 +29,30 @@ yarn add state-guard
 
 Here's how to use StateGuard to define a simple state machine for data loading:
 
-1. Import `createStore` function from the StateGuard package.
+1. Import `createStateMachine` function from the StateGuard package.
 
 ```js
-import {createStore} from 'state-guard';
+import {createStateMachine} from 'state-guard';
 ```
 
-2. Create a `dataStore` using the `createStore` function, with the initial
-   state, value, a transformer map, and transitions map.
+2. Create a `dataStore` using the `createStateMachine` function, with the
+   initial state, value, a transformer map, and transitions map.
 
 ```js
-const dataStore = createStore({
-  initialState: `initialized`,
+const dataStore = createStateMachine({
+  initialState: `isIdle`,
   initialValue: undefined,
   transformerMap: {
-    initialized: () => undefined,
-    loadingData: () => undefined,
-    loadedData: /** @param {string} data */ (data) => ({data}),
-    error: /** @param {unknown} reason */ (reason) => ({reason}),
+    isIdle: () => undefined,
+    isLoadingData: () => undefined,
+    hasData: /** @param {string} data */ (data) => ({data}),
+    hasError: /** @param {unknown} error */ (error) => ({error}),
   },
   transitionsMap: {
-    initialized: {loadData: `loadingData`},
-    loadingData: {setLoadedData: `loadedData`, setError: `error`},
-    loadedData: {reset: `initialized`},
-    error: {reset: `initialized`},
+    isIdle: {loadData: `isLoadingData`},
+    isLoadingData: {setData: `hasData`, setError: `hasError`},
+    hasData: {},
+    hasError: {},
   },
 });
 ```
@@ -71,20 +71,20 @@ dataStore.subscribe(() => {
    loading.
 
 ```js
-const loadingDataSnapshot = dataStore.assert(`initialized`).actions.loadData();
+const isLoadingData = dataStore.assert(`isIdle`).actions.loadData();
 
 try {
   const response = await fetch(`https://example.com`);
   const data = await response.text();
 
   // Set data only if the snapshot is not stale.
-  if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
-    loadingDataSnapshot.actions.setLoadedData(data);
+  if (isLoadingData === dataStore.get(`isLoadingData`)) {
+    isLoadingData.actions.setData(data);
   }
 } catch (reason) {
   // Set error only if the snapshot is not stale.
-  if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
-    loadingDataSnapshot.actions.setError(reason);
+  if (isLoadingData === dataStore.get(`isLoadingData`)) {
+    isLoadingData.actions.setError(reason);
   }
 }
 ```

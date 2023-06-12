@@ -1,19 +1,19 @@
-import {createStore} from './lib/index.js';
+import {createStateMachine} from './lib/index.js';
 
-const dataStore = createStore({
-  initialState: `initialized`,
+const dataStore = createStateMachine({
+  initialState: `isIdle`,
   initialValue: undefined,
   transformerMap: {
-    initialized: () => undefined,
-    loadingData: () => undefined,
-    loadedData: /** @param {string} data */ (data) => ({data}),
-    error: /** @param {unknown} reason */ (reason) => ({reason}),
+    isIdle: () => undefined,
+    isLoadingData: () => undefined,
+    hasData: /** @param {string} data */ (data) => ({data}),
+    hasError: /** @param {unknown} error */ (error) => ({error}),
   },
   transitionsMap: {
-    initialized: {loadData: `loadingData`},
-    loadingData: {setLoadedData: `loadedData`, setError: `error`},
-    loadedData: {reset: `initialized`},
-    error: {reset: `initialized`},
+    isIdle: {loadData: `isLoadingData`},
+    isLoadingData: {setData: `hasData`, setError: `hasError`},
+    hasData: {},
+    hasError: {},
   },
 });
 
@@ -23,19 +23,19 @@ dataStore.subscribe(() => {
   console.log(snapshot.state, snapshot.value);
 });
 
-const loadingDataSnapshot = dataStore.assert(`initialized`).actions.loadData();
+const isLoadingData = dataStore.assert(`isIdle`).actions.loadData();
 
 try {
   const response = await fetch(`https://example.com`);
   const data = await response.text();
 
   // Set data only if the snapshot is not stale.
-  if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
-    loadingDataSnapshot.actions.setLoadedData(data);
+  if (isLoadingData === dataStore.get(`isLoadingData`)) {
+    isLoadingData.actions.setData(data);
   }
 } catch (reason) {
   // Set error only if the snapshot is not stale.
-  if (loadingDataSnapshot === dataStore.get(`loadingData`)) {
-    loadingDataSnapshot.actions.setError(reason);
+  if (isLoadingData === dataStore.get(`isLoadingData`)) {
+    isLoadingData.actions.setError(reason);
   }
 }

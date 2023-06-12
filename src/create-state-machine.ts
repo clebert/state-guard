@@ -1,4 +1,4 @@
-export type Store<
+export type StateMachine<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
 > = {
@@ -56,16 +56,17 @@ export type InferActions<
   >;
 };
 
-export type InferSnapshot<TStore, TState> = TStore extends Store<
-  infer TTransformerMap,
-  infer TTransitionsMap
->
-  ? TState extends keyof TTransformerMap
-    ? Snapshot<TTransformerMap, TTransitionsMap, TState>
-    : never
-  : never;
+export type InferSnapshot<TStateMachine, TState> =
+  TStateMachine extends StateMachine<
+    infer TTransformerMap,
+    infer TTransitionsMap
+  >
+    ? TState extends keyof TTransformerMap
+      ? Snapshot<TTransformerMap, TTransitionsMap, TState>
+      : never
+    : never;
 
-export interface StoreInit<
+export interface StateMachineInit<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
   TInitialState extends keyof TTransformerMap,
@@ -76,7 +77,7 @@ export interface StoreInit<
   readonly transitionsMap: TTransitionsMap;
 }
 
-export function createStore<
+export function createStateMachine<
   const TTransformerMap extends TransformerMap,
   const TTransitionsMap extends TransitionsMap<TTransformerMap>,
   const TInitialState extends keyof TTransformerMap,
@@ -85,10 +86,11 @@ export function createStore<
   initialValue,
   transformerMap,
   transitionsMap,
-}: StoreInit<TTransformerMap, TTransitionsMap, TInitialState>): Store<
+}: StateMachineInit<
   TTransformerMap,
-  TTransitionsMap
-> {
+  TTransitionsMap,
+  TInitialState
+>): StateMachine<TTransformerMap, TTransitionsMap> {
   const listeners = new Set<() => void>();
 
   let notifying = false;
@@ -131,14 +133,7 @@ export function createStore<
         get(_, actionName) {
           assertVersion();
 
-          const newState =
-            typeof actionName === `string`
-              ? transitionsMap[currentState]![actionName]
-              : undefined;
-
-          if (newState === undefined) {
-            throw new Error(`Unknown action.`);
-          }
+          const newState = transitionsMap[currentState][actionName as string]!;
 
           return (...args: any[]) => {
             if (notifying) {
