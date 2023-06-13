@@ -39,22 +39,17 @@ export interface Snapshot<
 > {
   readonly state: TState;
   readonly value: ReturnType<TTransformerMap[TState]>;
-  readonly actions: InferActions<TTransformerMap, TTransitionsMap, TState>;
-}
 
-export type InferActions<
-  TTransformerMap extends TransformerMap,
-  TTransitionsMap extends TransitionsMap<TTransformerMap>,
-  TState extends keyof TTransformerMap,
-> = {
-  readonly [TActionName in keyof TTransitionsMap[TState]]: (
-    ...args: Parameters<TTransformerMap[TTransitionsMap[TState][TActionName]]>
-  ) => Snapshot<
-    TTransformerMap,
-    TTransitionsMap,
-    TTransitionsMap[TState][TActionName]
-  >;
-};
+  readonly actions: {
+    readonly [TActionName in keyof TTransitionsMap[TState]]: (
+      ...args: Parameters<TTransformerMap[TTransitionsMap[TState][TActionName]]>
+    ) => Snapshot<
+      TTransformerMap,
+      TTransitionsMap,
+      TTransitionsMap[TState][TActionName]
+    >;
+  };
+}
 
 export type InferSnapshot<TStateMachine, TState> =
   TStateMachine extends StateMachine<
@@ -65,6 +60,13 @@ export type InferSnapshot<TStateMachine, TState> =
       ? Snapshot<TTransformerMap, TTransitionsMap, TState>
       : never
     : never;
+
+export type InferState<TStateMachine> = TStateMachine extends StateMachine<
+  infer TTransformerMap,
+  any
+>
+  ? keyof TTransformerMap
+  : never;
 
 export interface StateMachineInit<
   TTransformerMap extends TransformerMap,

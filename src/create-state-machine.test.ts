@@ -1,4 +1,4 @@
-import type {InferSnapshot, StateMachine} from './create-state-machine.js';
+import type {InferSnapshot, InferState, StateMachine} from './create-state-machine.js';
 
 import {createStateMachine} from './create-state-machine.js';
 import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
@@ -266,6 +266,15 @@ describe(`createStateMachine()`, () => {
     const {state, value, actions} = trafficLight.get();
 
     void (state satisfies 'isRed' | 'isTurningGreen' | 'isGreen' | 'isTurningRed');
+    void (state satisfies InferState<typeof trafficLight>);
+    //@ts-expect-error
+    void (state satisfies Exclude<InferState<typeof trafficLight>, 'isRed'>);
+    //@ts-expect-error
+    void (state satisfies Exclude<InferState<typeof trafficLight>, 'isTurningGreen'>);
+    //@ts-expect-error
+    void (state satisfies Exclude<InferState<typeof trafficLight>, 'isGreen'>);
+    //@ts-expect-error
+    void (state satisfies Exclude<InferState<typeof trafficLight>, 'isTurningRed'>);
     void (value satisfies {color: '#FF0000'} | {color: '#FFFF00'} | {color: '#00FF00'});
 
     void (actions satisfies
@@ -276,43 +285,56 @@ describe(`createStateMachine()`, () => {
   });
 
   test(`"isRed" snapshot types`, () => {
-    const {state, value, actions} = trafficLight.assert(`isRed`);
+    const isRed = trafficLight.get(`isRed`);
 
-    void (state satisfies 'isRed' | undefined);
-    void (value satisfies {color: '#FF0000'} | undefined);
+    expect(isRed).not.toBe(undefined);
 
-    void (actions satisfies
+    // @ts-expect-error
+    void isRed.state;
+    void (isRed?.state satisfies Omit<InferState<typeof trafficLight>, 'isRed'> | undefined);
+    void (isRed?.value satisfies {color: '#FF0000'} | undefined);
+
+    void (isRed?.actions satisfies
       | {turnGreen: (color: '#FFFF00') => InferSnapshot<typeof trafficLight, 'isTurningGreen'>}
       | undefined);
   });
 
   test(`"isTurningGreen" snapshot types`, () => {
-    const {state, value, actions} = trafficLight.get(`isTurningGreen`) ?? {};
+    const isTurningGreen = trafficLight.get(`isTurningGreen`);
 
-    void (state satisfies 'isTurningGreen' | undefined);
-    void (value satisfies {color: '#FFFF00'} | undefined);
+    expect(isTurningGreen).toBe(undefined);
 
-    void (actions satisfies
+    void (isTurningGreen?.state satisfies 'isTurningGreen' | undefined);
+    void (isTurningGreen?.value satisfies {color: '#FFFF00'} | undefined);
+
+    void (isTurningGreen?.actions satisfies
       | {setGreen: (color: '#00FF00') => InferSnapshot<typeof trafficLight, 'isGreen'>}
       | undefined);
   });
 
   test(`"isGreen" snapshot types`, () => {
-    const {state, value, actions} = trafficLight.get(`isGreen`) ?? {};
+    const isGreen = trafficLight.get(`isGreen`);
 
-    void (state satisfies 'isGreen' | undefined);
-    void (value satisfies {color: '#00FF00'} | undefined);
+    expect(isGreen).toBe(undefined);
 
-    void (actions satisfies
+    void (isGreen?.state satisfies 'isGreen' | undefined);
+    void (isGreen?.value satisfies {color: '#00FF00'} | undefined);
+
+    void (isGreen?.actions satisfies
       | {turnRed: (color: '#FFFF00') => InferSnapshot<typeof trafficLight, 'isTurningRed'>}
       | undefined);
   });
 
   test(`"isTurningRed" snapshot types`, () => {
-    const {state, value, actions} = trafficLight.get(`isTurningRed`) ?? {};
+    const isTurningRed = trafficLight.get(`isTurningRed`);
 
-    void (state satisfies 'isTurningRed' | undefined);
-    void (value satisfies {color: '#FFFF00'} | undefined);
-    void (actions satisfies {setRed: (color: '#FF0000') => InferSnapshot<typeof trafficLight, 'isRed'>} | undefined);
+    expect(isTurningRed).toBe(undefined);
+
+    void (isTurningRed?.state satisfies 'isTurningRed' | undefined);
+    void (isTurningRed?.value satisfies {color: '#FFFF00'} | undefined);
+
+    void (isTurningRed?.actions satisfies
+      | {setRed: (color: '#FF0000') => InferSnapshot<typeof trafficLight, 'isRed'>}
+      | undefined);
   });
 });
