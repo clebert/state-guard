@@ -61,9 +61,9 @@ const dataStore = createStateMachine({
 
 ```js
 dataStore.subscribe(() => {
-  const snapshot = dataStore.get();
+  const {state, value} = dataStore.get();
 
-  console.log(snapshot.state, snapshot.value);
+  console.log(state, value);
 });
 ```
 

@@ -18,9 +18,9 @@ const dataStore = createStateMachine({
 });
 
 dataStore.subscribe(() => {
-  const snapshot = dataStore.get();
+  const {state, value} = dataStore.get();
 
-  console.log(snapshot.state, snapshot.value);
+  console.log(state, value);
 });
 
 const isLoadingData = dataStore.assert(`isIdle`).actions.loadData();
