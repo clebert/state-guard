@@ -26,6 +26,9 @@ yarn add state-guard
 
 ## Usage Example
 
+> If you're looking for a more advanced state machine implementation, take a look at
+> [bookmark.wtf](https://github.com/clebert/bookmark.wtf/blob/61bd53fc9d5d718c52187173fc4d104f248f5d04/src/state-machines/app.ts#L83).
+
 Here's how to use StateGuard to define a simple state machine for data loading:
 
 1. Import `createStateMachine` function from the StateGuard package.
