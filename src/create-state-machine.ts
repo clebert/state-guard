@@ -2,18 +2,12 @@ export type StateMachine<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
 > = {
-  readonly get: <
-    TExpectedState extends keyof TTransformerMap | undefined = undefined,
-  >(
+  readonly get: <TExpectedState extends keyof TTransformerMap | undefined = undefined>(
     expectedState?: TExpectedState,
   ) => TExpectedState extends keyof TTransformerMap
     ? Snapshot<TTransformerMap, TTransitionsMap, TExpectedState> | undefined
     : {
-        [TState in keyof TTransformerMap]: Snapshot<
-          TTransformerMap,
-          TTransitionsMap,
-          TState
-        >;
+        [TState in keyof TTransformerMap]: Snapshot<TTransformerMap, TTransitionsMap, TState>;
       }[keyof TTransformerMap];
 
   readonly assert: <TExpectedState extends keyof TTransformerMap>(
@@ -43,23 +37,18 @@ export interface Snapshot<
   readonly actions: {
     readonly [TActionName in keyof TTransitionsMap[TState]]: (
       ...args: Parameters<TTransformerMap[TTransitionsMap[TState][TActionName]]>
-    ) => Snapshot<
-      TTransformerMap,
-      TTransitionsMap,
-      TTransitionsMap[TState][TActionName]
-    >;
+    ) => Snapshot<TTransformerMap, TTransitionsMap, TTransitionsMap[TState][TActionName]>;
   };
 }
 
-export type InferSnapshot<TStateMachine, TState> =
-  TStateMachine extends StateMachine<
-    infer TTransformerMap,
-    infer TTransitionsMap
-  >
-    ? TState extends keyof TTransformerMap
-      ? Snapshot<TTransformerMap, TTransitionsMap, TState>
-      : never
-    : never;
+export type InferSnapshot<TStateMachine, TState> = TStateMachine extends StateMachine<
+  infer TTransformerMap,
+  infer TTransitionsMap
+>
+  ? TState extends keyof TTransformerMap
+    ? Snapshot<TTransformerMap, TTransitionsMap, TState>
+    : never
+  : never;
 
 export type InferState<TStateMachine> = TStateMachine extends StateMachine<
   infer TTransformerMap,
@@ -88,11 +77,10 @@ export function createStateMachine<
   initialValue,
   transformerMap,
   transitionsMap,
-}: StateMachineInit<
+}: StateMachineInit<TTransformerMap, TTransitionsMap, TInitialState>): StateMachine<
   TTransformerMap,
-  TTransitionsMap,
-  TInitialState
->): StateMachine<TTransformerMap, TTransitionsMap> {
+  TTransitionsMap
+> {
   const listeners = new Set<() => void>();
 
   let notifying = false;
@@ -116,11 +104,7 @@ export function createStateMachine<
   let currentVersion = Symbol();
   let currentSnapshot = createSnapshot();
 
-  function createSnapshot(): Snapshot<
-    TTransformerMap,
-    TTransitionsMap,
-    keyof TTransformerMap
-  > {
+  function createSnapshot(): Snapshot<TTransformerMap, TTransitionsMap, keyof TTransformerMap> {
     const version = currentVersion;
 
     function assertVersion(): void {

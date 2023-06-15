@@ -13,21 +13,5 @@
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-typescript-emit.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-typescript-eslint.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-vscode.json"
-  ],
-  "patches": {
-    ".prettierrc.json": [
-      {
-        "value": {
-          "overrides": [
-            {"files": "src/*.test.ts", "options": {"printWidth": 120}}
-          ]
-        }
-      }
-    ],
-    ".vscode/settings.json": [
-      {
-        "value": {"editor.rulers": [120]}
-      }
-    ]
-  }
+  ]
 }
