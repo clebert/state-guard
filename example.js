@@ -1,16 +1,16 @@
 import {createStateMachine} from './lib/index.js';
 
 const dataStore = createStateMachine({
-  initialState: `isIdle`,
+  initialState: `isInitialized`,
   initialValue: undefined,
   transformerMap: {
-    isIdle: () => undefined,
+    isInitialized: () => undefined,
     isLoadingData: () => undefined,
     hasData: /** @param {string} data */ (data) => ({data}),
     hasError: /** @param {unknown} error */ (error) => ({error}),
   },
   transitionsMap: {
-    isIdle: {loadData: `isLoadingData`},
+    isInitialized: {loadData: `isLoadingData`},
     isLoadingData: {setData: `hasData`, setError: `hasError`},
     hasData: {},
     hasError: {},
@@ -23,7 +23,7 @@ dataStore.subscribe(() => {
   console.log(state, value);
 });
 
-const isLoadingData = dataStore.assert(`isIdle`).actions.loadData();
+const isLoadingData = dataStore.assert(`isInitialized`).actions.loadData();
 
 try {
   const response = await fetch(`https://example.com`);
