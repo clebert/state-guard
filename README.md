@@ -24,10 +24,17 @@ Using Yarn:
 yarn add state-guard
 ```
 
-## Usage Example
+## Showcase
 
-> If you're looking for a more advanced state machine implementation, take a look at
-> [bookmark.wtf](https://github.com/clebert/bookmark.wtf/blob/61bd53fc9d5d718c52187173fc4d104f248f5d04/src/state-machines/app.ts#L83).
+Explore some projects that use StateGuard for state machine implementations:
+
+- [ChatCompletions](https://github.com/clebert/chat-completions): A reactive state machine
+  implementation for OpenAI Chat Completions API.
+
+_If you have a project using StateGuard that you'd like to share, consider submitting a pull request
+to add it to this list._
+
+## Usage Example
 
 Here's how to use StateGuard to define a simple state machine for data loading:
 
