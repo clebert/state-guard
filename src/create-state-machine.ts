@@ -2,22 +2,19 @@ export type StateMachine<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
 > = {
-  readonly get: <TExpectedState extends keyof TTransformerMap | undefined = undefined>(
-    expectedState?: TExpectedState,
-  ) => TExpectedState extends keyof TTransformerMap
-    ? Snapshot<TTransformerMap, TTransitionsMap, TExpectedState> | undefined
-    : {
-        [TState in keyof TTransformerMap]: Snapshot<TTransformerMap, TTransitionsMap, TState>;
-      }[keyof TTransformerMap];
+  get(): {
+    [TState in keyof TTransformerMap]: Snapshot<TTransformerMap, TTransitionsMap, TState>;
+  }[keyof TTransformerMap];
 
-  readonly assert: <TExpectedState extends keyof TTransformerMap>(
+  get<TExpectedState extends keyof TTransformerMap>(
     expectedState: TExpectedState,
-  ) => Snapshot<TTransformerMap, TTransitionsMap, TExpectedState>;
+  ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedState> | undefined;
 
-  readonly subscribe: (
-    listener: () => void,
-    options?: {readonly signal?: AbortSignal},
-  ) => () => void;
+  assert<TExpectedState extends keyof TTransformerMap>(
+    expectedState: TExpectedState,
+  ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedState>;
+
+  subscribe(listener: () => void, options?: {readonly signal?: AbortSignal}): () => void;
 };
 
 export type TransformerMap = Readonly<Record<string, (...args: any[]) => any>>;
@@ -41,16 +38,16 @@ export interface Snapshot<
   };
 }
 
-export type InferSnapshot<TStateMachine, TState> = TStateMachine extends StateMachine<
-  infer TTransformerMap,
-  infer TTransitionsMap
->
-  ? TState extends keyof TTransformerMap
-    ? Snapshot<TTransformerMap, TTransitionsMap, TState>
+export type InferSnapshot<
+  TStateMachine,
+  TStateUnion = InferStateUnion<TStateMachine>,
+> = TStateMachine extends StateMachine<infer TTransformerMap, infer TTransitionsMap>
+  ? TStateUnion extends keyof TTransformerMap
+    ? {[TState in TStateUnion]: Snapshot<TTransformerMap, TTransitionsMap, TState>}[TStateUnion]
     : never
   : never;
 
-export type InferState<TStateMachine> = TStateMachine extends StateMachine<
+export type InferStateUnion<TStateMachine> = TStateMachine extends StateMachine<
   infer TTransformerMap,
   any
 >
@@ -163,11 +160,11 @@ export function createStateMachine<
   }
 
   return {
-    get: (expectedState) => {
+    get: ((expectedState: unknown) => {
       return expectedState === undefined || expectedState === currentState
         ? (currentSnapshot as any)
         : undefined;
-    },
+    }) as any,
     assert: (expectedState) => {
       if (expectedState !== currentState) {
         throw new Error(`Unexpected state.`);

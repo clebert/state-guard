@@ -1,4 +1,4 @@
-import type {InferSnapshot, InferState, StateMachine} from './create-state-machine.js';
+import type {InferSnapshot, InferStateUnion, StateMachine} from './create-state-machine.js';
 
 import {createStateMachine} from './create-state-machine.js';
 import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
@@ -266,7 +266,7 @@ describe(`createStateMachine()`, () => {
     const {state, value, actions} = trafficLight.get();
 
     void (state satisfies 'isRed' | 'isTurningGreen' | 'isGreen' | 'isTurningRed');
-    void (state satisfies InferState<typeof trafficLight>);
+    void (state satisfies InferStateUnion<typeof trafficLight>);
     //@ts-expect-error
     void (state satisfies Exclude<InferState<typeof trafficLight>, 'isRed'>);
     //@ts-expect-error
@@ -291,7 +291,7 @@ describe(`createStateMachine()`, () => {
 
     // @ts-expect-error
     void isRed.state;
-    void (isRed?.state satisfies Omit<InferState<typeof trafficLight>, 'isRed'> | undefined);
+    void (isRed?.state satisfies Omit<InferStateUnion<typeof trafficLight>, 'isRed'> | undefined);
     void (isRed?.value satisfies {color: '#FF0000'} | undefined);
 
     void (isRed?.actions satisfies
