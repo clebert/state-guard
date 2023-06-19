@@ -12,16 +12,8 @@ _✅ 415 B with all dependencies, minified and gzipped._
 
 ## Installation
 
-Using npm:
-
 ```sh
 npm install state-guard
-```
-
-Using Yarn:
-
-```sh
-yarn add state-guard
 ```
 
 ## Showcase
