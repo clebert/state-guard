@@ -1,1 +1,1 @@
-export * from './create-state-machine.js';
+export * from './create-machine.js';

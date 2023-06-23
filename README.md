@@ -30,17 +30,17 @@ to add it to this list._
 
 Here's how to use StateGuard to define a simple state machine for data loading:
 
-1. Import `createStateMachine` function from the StateGuard package.
+1. Import `createMachine` function from the StateGuard package.
 
 ```js
-import {createStateMachine} from 'state-guard';
+import {createMachine} from 'state-guard';
 ```
 
-2. Create a `dataStore` using the `createStateMachine` function, with the initial state, value, a
+2. Create a `dataMachine` using the `createMachine` function, with the initial state, value, a
    transformer map, and transitions map.
 
 ```js
-const dataStore = createStateMachine({
+const dataMachine = createMachine({
   initialState: `isInitialized`,
   initialValue: undefined,
   transformerMap: {
@@ -58,11 +58,11 @@ const dataStore = createStateMachine({
 });
 ```
 
-3. Subscribe to `dataStore` to log the current state and value.
+3. Subscribe to `dataMachine` to log the current state and value.
 
 ```js
-dataStore.subscribe(() => {
-  const {state, value} = dataStore.get();
+dataMachine.subscribe(() => {
+  const {state, value} = dataMachine.get();
 
   console.log(state, value);
 });
@@ -71,19 +71,19 @@ dataStore.subscribe(() => {
 4. Trigger the `loadData` action in the `initialized` state and start data loading.
 
 ```js
-const isLoadingData = dataStore.assert(`isInitialized`).actions.loadData();
+const isLoadingData = dataMachine.assert(`isInitialized`).actions.loadData();
 
 try {
   const response = await fetch(`https://example.com`);
   const data = await response.text();
 
   // Set data only if the snapshot is not stale.
-  if (isLoadingData === dataStore.get(`isLoadingData`)) {
+  if (isLoadingData === dataMachine.get(`isLoadingData`)) {
     isLoadingData.actions.setData(data);
   }
 } catch (error) {
   // Set error only if the snapshot is not stale.
-  if (isLoadingData === dataStore.get(`isLoadingData`)) {
+  if (isLoadingData === dataMachine.get(`isLoadingData`)) {
     isLoadingData.actions.setError(error);
   }
 }
@@ -95,7 +95,7 @@ try {
 import * as React from 'react';
 
 const YourComponent = () => {
-  const dataStoreSnapshot = React.useSyncExternalStore(dataStore.subscribe, () => dataStore.get());
+  const dataSnapshot = React.useSyncExternalStore(dataMachine.subscribe, () => dataMachine.get());
 
   // Your component logic and rendering.
 };

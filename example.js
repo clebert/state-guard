@@ -1,6 +1,6 @@
-import {createStateMachine} from './lib/index.js';
+import {createMachine} from './lib/index.js';
 
-const dataStore = createStateMachine({
+const dataMachine = createMachine({
   initialState: `isInitialized`,
   initialValue: undefined,
   transformerMap: {
@@ -17,25 +17,25 @@ const dataStore = createStateMachine({
   },
 });
 
-dataStore.subscribe(() => {
-  const {state, value} = dataStore.get();
+dataMachine.subscribe(() => {
+  const {state, value} = dataMachine.get();
 
   console.log(state, value);
 });
 
-const isLoadingData = dataStore.assert(`isInitialized`).actions.loadData();
+const isLoadingData = dataMachine.assert(`isInitialized`).actions.loadData();
 
 try {
   const response = await fetch(`https://example.com`);
   const data = await response.text();
 
   // Set data only if the snapshot is not stale.
-  if (isLoadingData === dataStore.get(`isLoadingData`)) {
+  if (isLoadingData === dataMachine.get(`isLoadingData`)) {
     isLoadingData.actions.setData(data);
   }
 } catch (error) {
   // Set error only if the snapshot is not stale.
-  if (isLoadingData === dataStore.get(`isLoadingData`)) {
+  if (isLoadingData === dataMachine.get(`isLoadingData`)) {
     isLoadingData.actions.setError(error);
   }
 }

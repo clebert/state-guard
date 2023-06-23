@@ -1,4 +1,4 @@
-export type StateMachine<
+export type Machine<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
 > = {
@@ -39,22 +39,19 @@ export interface Snapshot<
 }
 
 export type InferSnapshot<
-  TStateMachine,
-  TStateUnion = InferStateUnion<TStateMachine>,
-> = TStateMachine extends StateMachine<infer TTransformerMap, infer TTransitionsMap>
+  TMachine,
+  TStateUnion = InferStateUnion<TMachine>,
+> = TMachine extends Machine<infer TTransformerMap, infer TTransitionsMap>
   ? TStateUnion extends keyof TTransformerMap
     ? {[TState in TStateUnion]: Snapshot<TTransformerMap, TTransitionsMap, TState>}[TStateUnion]
     : never
   : never;
 
-export type InferStateUnion<TStateMachine> = TStateMachine extends StateMachine<
-  infer TTransformerMap,
-  any
->
+export type InferStateUnion<TMachine> = TMachine extends Machine<infer TTransformerMap, any>
   ? keyof TTransformerMap
   : never;
 
-export interface StateMachineInit<
+export interface MachineInit<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
   TInitialState extends keyof TTransformerMap,
@@ -65,7 +62,7 @@ export interface StateMachineInit<
   readonly transitionsMap: TTransitionsMap;
 }
 
-export function createStateMachine<
+export function createMachine<
   const TTransformerMap extends TransformerMap,
   const TTransitionsMap extends TransitionsMap<TTransformerMap>,
   const TInitialState extends keyof TTransformerMap,
@@ -74,7 +71,7 @@ export function createStateMachine<
   initialValue,
   transformerMap,
   transitionsMap,
-}: StateMachineInit<TTransformerMap, TTransitionsMap, TInitialState>): StateMachine<
+}: MachineInit<TTransformerMap, TTransitionsMap, TInitialState>): Machine<
   TTransformerMap,
   TTransitionsMap
 > {
