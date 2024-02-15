@@ -7,19 +7,22 @@ export type Machine<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
 > = {
-  get(): {
+  get(this: void): {
     [TState in keyof TTransformerMap]: Snapshot<TTransformerMap, TTransitionsMap, TState>;
   }[keyof TTransformerMap];
 
   get<TExpectedState extends keyof TTransformerMap>(
+    this: void,
     expectedState: TExpectedState,
   ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedState> | undefined;
 
   assert<TExpectedState extends keyof TTransformerMap>(
+    this: void,
     expectedState: TExpectedState,
   ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedState>;
 
   subscribe(
+    this: void,
     listener: () => void,
     options?: { readonly signal?: AbortSignal | undefined },
   ): () => void;
@@ -41,6 +44,7 @@ export interface Snapshot<
 
   readonly actions: {
     readonly [TActionName in keyof TTransitionsMap[TState]]: (
+      this: void,
       ...args: Parameters<TTransformerMap[TTransitionsMap[TState][TActionName]]>
     ) => Snapshot<TTransformerMap, TTransitionsMap, TTransitionsMap[TState][TActionName]>;
   };
