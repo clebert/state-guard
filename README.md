@@ -16,16 +16,6 @@ _✅ 425 B with all dependencies, minified and gzipped._
 npm install state-guard
 ```
 
-## Showcase
-
-Explore some projects that use StateGuard for state machine implementations:
-
-- [ChatCompletions](https://github.com/clebert/chat-completions): A reactive state machine
-  implementation for OpenAI Chat Completions API.
-
-_If you have a project using StateGuard that you'd like to share, consider submitting a pull request
-to add it to this list._
-
 ## Usage Example
 
 Here's how to use StateGuard to define a simple state machine for data loading:
