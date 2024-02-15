@@ -1,6 +1,6 @@
 {
   "name": "state-guard",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Type-safe, deterministic state management featuring state machines and automatic stale snapshot invalidation.",
   "repository": {
     "type": "git",
