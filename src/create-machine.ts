@@ -19,7 +19,10 @@ export type Machine<
     expectedState: TExpectedState,
   ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedState>;
 
-  subscribe(listener: () => void, options?: { readonly signal?: AbortSignal }): () => void;
+  subscribe(
+    listener: () => void,
+    options?: { readonly signal?: AbortSignal | undefined },
+  ): () => void;
 };
 
 export type TransformerMap = Readonly<Record<string, (...args: any[]) => any>>;
