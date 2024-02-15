@@ -3,15 +3,31 @@
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-editorconfig.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-eslint.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-git.json",
+    "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-github-ci.json",
+    "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-github-ci-node.json",
+    "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-github-ci-npm.json",
+    "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-github-ci-npm-publish.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-jest.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-node.json",
-    "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-node-github.json",
-    "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-npm-github.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-prettier.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-swc.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-typescript.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-typescript-emit.json",
-    "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-typescript-eslint.json",
     "https://raw.githubusercontent.com/clebert/onecfg-lib/main/lib/onecfg-vscode.json"
-  ]
+  ],
+  "patches": {
+    "ci.sh": [
+      {
+        "value": [
+          "npm run compile:emit",
+          "npm run compile:check",
+          "npm run format:check",
+          "npm run lint",
+          "npm run size:check",
+          "npm test",
+          "npm start"
+        ]
+      }
+    ]
+  }
 }

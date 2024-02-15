@@ -1,20 +1,21 @@
-import type {InferSnapshot, InferStateUnion, Machine} from './create-machine.js';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import {createMachine} from './create-machine.js';
-import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
+import type { InferSnapshot, InferStateUnion, Machine } from './create-machine.js';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { createMachine } from './create-machine.js';
 
 const transformerMap = {
-  isRed: (color: '#FF0000') => ({color}),
-  isTurningGreen: (color: '#FFFF00') => ({color}),
-  isGreen: (color: '#00FF00') => ({color}),
-  isTurningRed: (color: '#FFFF00') => ({color}),
+  isRed: (color: '#FF0000') => ({ color }),
+  isTurningGreen: (color: '#FFFF00') => ({ color }),
+  isGreen: (color: '#00FF00') => ({ color }),
+  isTurningRed: (color: '#FFFF00') => ({ color }),
 } as const;
 
 const transitionsMap = {
-  isRed: {turnGreen: `isTurningGreen`},
-  isTurningGreen: {setGreen: `isGreen`},
-  isGreen: {turnRed: `isTurningRed`},
-  isTurningRed: {setRed: `isRed`},
+  isRed: { turnGreen: `isTurningGreen` },
+  isTurningGreen: { setGreen: `isGreen` },
+  isGreen: { turnRed: `isTurningRed` },
+  isTurningRed: { setRed: `isRed` },
 } as const;
 
 describe(`createMachine()`, () => {
@@ -24,7 +25,7 @@ describe(`createMachine()`, () => {
   beforeEach(() => {
     trafficLightMachine = createMachine({
       initialState: `isRed`,
-      initialValue: {color: `#FF0000`},
+      initialValue: { color: `#FF0000` },
       transformerMap,
       transitionsMap,
     });
@@ -45,7 +46,7 @@ describe(`createMachine()`, () => {
     expect(trafficLightMachine.get(`isGreen`)).toBe(undefined);
     expect(trafficLightMachine.get(`isTurningRed`)).toBe(undefined);
     expect(isRed.state).toBe(`isRed`);
-    expect(isRed.value).toEqual({color: `#FF0000`});
+    expect(isRed.value).toEqual({ color: `#FF0000` });
     expect(isRed.value).toBe(isRed.value);
 
     const isTurningGreen = isRed.actions.turnGreen(`#FFFF00`);
@@ -56,7 +57,7 @@ describe(`createMachine()`, () => {
     expect(trafficLightMachine.get(`isGreen`)).toBe(undefined);
     expect(trafficLightMachine.get(`isTurningRed`)).toBe(undefined);
     expect(isTurningGreen.state).toBe(`isTurningGreen`);
-    expect(isTurningGreen.value).toEqual({color: `#FFFF00`});
+    expect(isTurningGreen.value).toEqual({ color: `#FFFF00` });
     expect(isTurningGreen.value).toBe(isTurningGreen.value);
 
     const isGreen = isTurningGreen.actions.setGreen(`#00FF00`);
@@ -67,7 +68,7 @@ describe(`createMachine()`, () => {
     expect(trafficLightMachine.get(`isGreen`)).toBe(isGreen);
     expect(trafficLightMachine.get(`isTurningRed`)).toBe(undefined);
     expect(isGreen.state).toBe(`isGreen`);
-    expect(isGreen.value).toEqual({color: `#00FF00`});
+    expect(isGreen.value).toEqual({ color: `#00FF00` });
     expect(isGreen.value).toBe(isGreen.value);
 
     const isTurningRed = isGreen.actions.turnRed(`#FFFF00`);
@@ -78,7 +79,7 @@ describe(`createMachine()`, () => {
     expect(trafficLightMachine.get(`isGreen`)).toBe(undefined);
     expect(trafficLightMachine.get(`isTurningRed`)).toBe(isTurningRed);
     expect(isTurningRed.state).toBe(`isTurningRed`);
-    expect(isTurningRed.value).toEqual({color: `#FFFF00`});
+    expect(isTurningRed.value).toEqual({ color: `#FFFF00` });
     expect(isTurningRed.value).toBe(isTurningRed.value);
 
     const isRedAgain = isTurningRed.actions.setRed(`#FF0000`);
@@ -90,7 +91,7 @@ describe(`createMachine()`, () => {
     expect(trafficLightMachine.get(`isGreen`)).toBe(undefined);
     expect(trafficLightMachine.get(`isTurningRed`)).toBe(undefined);
     expect(isRedAgain.state).toBe(`isRed`);
-    expect(isRedAgain.value).toEqual({color: `#FF0000`});
+    expect(isRedAgain.value).toEqual({ color: `#FF0000` });
     expect(isRedAgain.value).toBe(isRedAgain.value);
   });
 
@@ -111,7 +112,7 @@ describe(`createMachine()`, () => {
 
     const abortController = new AbortController();
 
-    trafficLightMachine.subscribe(listener2, {signal: abortController.signal});
+    trafficLightMachine.subscribe(listener2, { signal: abortController.signal });
 
     expect(listener1).toBeCalledTimes(0);
     expect(listener2).toBeCalledTimes(0);
@@ -154,8 +155,8 @@ describe(`createMachine()`, () => {
 
   test(`stale snapshots`, () => {
     const isRed = trafficLightMachine.assert(`isRed`);
-    const {actions} = isRed;
-    const {turnGreen} = actions;
+    const { actions } = isRed;
+    const { turnGreen } = actions;
 
     turnGreen(`#FFFF00`);
 
@@ -234,8 +235,8 @@ describe(`createMachine()`, () => {
         },
       },
       transitionsMap: {
-        isFoo: {setBar: `isBar`},
-        isBar: {setFoo: `isFoo`},
+        isFoo: { setBar: `isBar` },
+        isBar: { setFoo: `isFoo` },
       },
     });
 
@@ -255,15 +256,15 @@ describe(`createMachine()`, () => {
     const machine = createMachine({
       initialState: `_`,
       initialValue: undefined,
-      transformerMap: {'_': () => undefined, '': () => undefined},
-      transitionsMap: {'_': {}, '': {}},
+      transformerMap: { '_': () => undefined, '': () => undefined },
+      transitionsMap: { '_': {}, '': {} },
     });
 
     expect(machine.get(``)).toBe(undefined);
   });
 
   test(`unspecific snapshot types`, () => {
-    const {state, value, actions} = trafficLightMachine.get();
+    const { state, value, actions } = trafficLightMachine.get();
 
     void (state satisfies 'isRed' | 'isTurningGreen' | 'isGreen' | 'isTurningRed');
     void (state satisfies InferStateUnion<typeof trafficLightMachine>);
@@ -275,7 +276,7 @@ describe(`createMachine()`, () => {
     void (state satisfies Exclude<InferState<typeof trafficLightMachine>, 'isGreen'>);
     //@ts-expect-error
     void (state satisfies Exclude<InferState<typeof trafficLightMachine>, 'isTurningRed'>);
-    void (value satisfies {color: '#FF0000'} | {color: '#FFFF00'} | {color: '#00FF00'});
+    void (value satisfies { color: '#FF0000' } | { color: '#FFFF00' } | { color: '#00FF00' });
 
     void (actions satisfies
       | {
@@ -283,9 +284,9 @@ describe(`createMachine()`, () => {
             color: '#FFFF00',
           ) => InferSnapshot<typeof trafficLightMachine, 'isTurningGreen'>;
         }
-      | {setGreen: (color: '#00FF00') => InferSnapshot<typeof trafficLightMachine, 'isGreen'>}
-      | {turnRed: (color: '#FFFF00') => InferSnapshot<typeof trafficLightMachine, 'isTurningRed'>}
-      | {setRed: (color: '#FF0000') => InferSnapshot<typeof trafficLightMachine, 'isRed'>});
+      | { setGreen: (color: '#00FF00') => InferSnapshot<typeof trafficLightMachine, 'isGreen'> }
+      | { turnRed: (color: '#FFFF00') => InferSnapshot<typeof trafficLightMachine, 'isTurningRed'> }
+      | { setRed: (color: '#FF0000') => InferSnapshot<typeof trafficLightMachine, 'isRed'> });
   });
 
   test(`"isRed" snapshot types`, () => {
@@ -300,7 +301,7 @@ describe(`createMachine()`, () => {
       | Omit<InferStateUnion<typeof trafficLightMachine>, 'isRed'>
       | undefined);
 
-    void (isRed?.value satisfies {color: '#FF0000'} | undefined);
+    void (isRed?.value satisfies { color: '#FF0000' } | undefined);
 
     void (isRed?.actions satisfies
       | {
@@ -317,10 +318,10 @@ describe(`createMachine()`, () => {
     expect(isTurningGreen).toBe(undefined);
 
     void (isTurningGreen?.state satisfies 'isTurningGreen' | undefined);
-    void (isTurningGreen?.value satisfies {color: '#FFFF00'} | undefined);
+    void (isTurningGreen?.value satisfies { color: '#FFFF00' } | undefined);
 
     void (isTurningGreen?.actions satisfies
-      | {setGreen: (color: '#00FF00') => InferSnapshot<typeof trafficLightMachine, 'isGreen'>}
+      | { setGreen: (color: '#00FF00') => InferSnapshot<typeof trafficLightMachine, 'isGreen'> }
       | undefined);
   });
 
@@ -330,10 +331,10 @@ describe(`createMachine()`, () => {
     expect(isGreen).toBe(undefined);
 
     void (isGreen?.state satisfies 'isGreen' | undefined);
-    void (isGreen?.value satisfies {color: '#00FF00'} | undefined);
+    void (isGreen?.value satisfies { color: '#00FF00' } | undefined);
 
     void (isGreen?.actions satisfies
-      | {turnRed: (color: '#FFFF00') => InferSnapshot<typeof trafficLightMachine, 'isTurningRed'>}
+      | { turnRed: (color: '#FFFF00') => InferSnapshot<typeof trafficLightMachine, 'isTurningRed'> }
       | undefined);
   });
 
@@ -343,10 +344,10 @@ describe(`createMachine()`, () => {
     expect(isTurningRed).toBe(undefined);
 
     void (isTurningRed?.state satisfies 'isTurningRed' | undefined);
-    void (isTurningRed?.value satisfies {color: '#FFFF00'} | undefined);
+    void (isTurningRed?.value satisfies { color: '#FFFF00' } | undefined);
 
     void (isTurningRed?.actions satisfies
-      | {setRed: (color: '#FF0000') => InferSnapshot<typeof trafficLightMachine, 'isRed'>}
+      | { setRed: (color: '#FF0000') => InferSnapshot<typeof trafficLightMachine, 'isRed'> }
       | undefined);
   });
 });

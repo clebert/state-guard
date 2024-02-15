@@ -33,7 +33,7 @@ Here's how to use StateGuard to define a simple state machine for data loading:
 1. Import `createMachine` function from the StateGuard package.
 
 ```js
-import {createMachine} from 'state-guard';
+import { createMachine } from 'state-guard';
 ```
 
 2. Create a `dataMachine` using the `createMachine` function, with the initial state, value, a
@@ -46,12 +46,12 @@ const dataMachine = createMachine({
   transformerMap: {
     isInitialized: () => undefined,
     isLoadingData: () => undefined,
-    hasData: /** @param {string} data */ (data) => ({data}),
-    hasError: /** @param {unknown} error */ (error) => ({error}),
+    hasData: /** @param {string} data */ (data) => ({ data }),
+    hasError: /** @param {unknown} error */ (error) => ({ error }),
   },
   transitionsMap: {
-    isInitialized: {loadData: `isLoadingData`},
-    isLoadingData: {setData: `hasData`, setError: `hasError`},
+    isInitialized: { loadData: `isLoadingData` },
+    isLoadingData: { setData: `hasData`, setError: `hasError` },
     hasData: {},
     hasError: {},
   },
@@ -62,7 +62,7 @@ const dataMachine = createMachine({
 
 ```js
 dataMachine.subscribe(() => {
-  const {state, value} = dataMachine.get();
+  const { state, value } = dataMachine.get();
 
   console.log(state, value);
 });

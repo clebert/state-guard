@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 export type Machine<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
@@ -14,7 +19,7 @@ export type Machine<
     expectedState: TExpectedState,
   ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedState>;
 
-  subscribe(listener: () => void, options?: {readonly signal?: AbortSignal}): () => void;
+  subscribe(listener: () => void, options?: { readonly signal?: AbortSignal }): () => void;
 };
 
 export type TransformerMap = Readonly<Record<string, (...args: any[]) => any>>;
@@ -38,18 +43,15 @@ export interface Snapshot<
   };
 }
 
-export type InferSnapshot<
-  TMachine,
-  TStateUnion = InferStateUnion<TMachine>,
-> = TMachine extends Machine<infer TTransformerMap, infer TTransitionsMap>
-  ? TStateUnion extends keyof TTransformerMap
-    ? {[TState in TStateUnion]: Snapshot<TTransformerMap, TTransitionsMap, TState>}[TStateUnion]
-    : never
-  : never;
+export type InferSnapshot<TMachine, TStateUnion = InferStateUnion<TMachine>> =
+  TMachine extends Machine<infer TTransformerMap, infer TTransitionsMap>
+    ? TStateUnion extends keyof TTransformerMap
+      ? { [TState in TStateUnion]: Snapshot<TTransformerMap, TTransitionsMap, TState> }[TStateUnion]
+      : never
+    : never;
 
-export type InferStateUnion<TMachine> = TMachine extends Machine<infer TTransformerMap, any>
-  ? keyof TTransformerMap
-  : never;
+export type InferStateUnion<TMachine> =
+  TMachine extends Machine<infer TTransformerMap, any> ? keyof TTransformerMap : never;
 
 export interface MachineInit<
   TTransformerMap extends TransformerMap,
@@ -169,7 +171,7 @@ export function createMachine<
 
       return currentSnapshot as any;
     },
-    subscribe(listener, {signal} = {}) {
+    subscribe(listener, { signal } = {}) {
       listeners.add(listener);
 
       const unsubscribe = () => {

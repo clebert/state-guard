@@ -1,4 +1,4 @@
-import {createMachine} from './lib/index.js';
+import { createMachine } from './lib/mod.js';
 
 const dataMachine = createMachine({
   initialState: `isInitialized`,
@@ -6,19 +6,19 @@ const dataMachine = createMachine({
   transformerMap: {
     isInitialized: () => undefined,
     isLoadingData: () => undefined,
-    hasData: /** @param {string} data */ (data) => ({data}),
-    hasError: /** @param {unknown} error */ (error) => ({error}),
+    hasData: /** @param {string} data */ (data) => ({ data }),
+    hasError: /** @param {unknown} error */ (error) => ({ error }),
   },
   transitionsMap: {
-    isInitialized: {loadData: `isLoadingData`},
-    isLoadingData: {setData: `hasData`, setError: `hasError`},
+    isInitialized: { loadData: `isLoadingData` },
+    isLoadingData: { setData: `hasData`, setError: `hasError` },
     hasData: {},
     hasError: {},
   },
 });
 
 dataMachine.subscribe(() => {
-  const {state, value} = dataMachine.get();
+  const { state, value } = dataMachine.get();
 
   console.log(state, value);
 });
