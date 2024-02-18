@@ -49,7 +49,31 @@ export interface Snapshot<
       ...args: Parameters<TTransformerMap[TTransitionsMap[TState][TActionName]]>
     ) => Snapshot<TTransformerMap, TTransitionsMap, TTransitionsMap[TState][TActionName]>;
   };
+
+  readonly prevStates: readonly InferPrevStateUnion<TTransformerMap, TTransitionsMap, TState>[];
 }
+
+export type InferPrevStateUnion<
+  TTransformerMap extends TransformerMap,
+  TTransitionsMap extends TransitionsMap<TTransformerMap>,
+  TCurrentState,
+> = {
+  [TState in keyof TTransitionsMap]: TCurrentState extends InferNextStateUnion<
+    TTransformerMap,
+    TTransitionsMap,
+    TState
+  >
+    ? TState
+    : never;
+}[keyof TTransitionsMap];
+
+export type InferNextStateUnion<
+  TTransformerMap extends TransformerMap,
+  TTransitionsMap extends TransitionsMap<TTransformerMap>,
+  TCurrentState,
+> = TCurrentState extends keyof TTransitionsMap
+  ? TTransitionsMap[TCurrentState][keyof TTransitionsMap[TCurrentState]]
+  : never;
 
 export type InferSnapshot<TMachine, TStateUnion = InferStateUnion<TMachine>> =
   TMachine extends Machine<infer TTransformerMap, infer TTransitionsMap>
@@ -85,6 +109,18 @@ export function createMachine<
   TTransformerMap,
   TTransitionsMap
 > {
+  const prevStatesMap: Record<string, readonly string[]> = {};
+
+  for (const state of Object.keys(transformerMap)) {
+    const prevStates: string[] = (prevStatesMap[state] = []);
+
+    for (const [otherState, transitions] of Object.entries(transitionsMap)) {
+      if (Object.values(transitions).includes(state)) {
+        prevStates.push(otherState);
+      }
+    }
+  }
+
   const listeners = new Set<() => void>();
 
   let notifying = false;
@@ -164,6 +200,12 @@ export function createMachine<
         assertVersion();
 
         return actions;
+      },
+
+      get prevStates() {
+        assertVersion();
+
+        return prevStatesMap[currentState as string] as any;
       },
     };
   }
