@@ -16,10 +16,10 @@ export type Machine<
     expectedState: TExpectedState,
   ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedState> | undefined;
 
-  assert<TExpectedState extends keyof TTransformerMap>(
+  assert<TExpectedStates extends (keyof TTransformerMap)[]>(
     this: void,
-    expectedState: TExpectedState,
-  ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedState>;
+    ...expectedStates: TExpectedStates
+  ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedStates[number]>;
 
   subscribe(
     this: void,
@@ -112,7 +112,7 @@ export function createMachine<
 
     function assertVersion(): void {
       if (version !== currentVersion) {
-        throw new Error(`Stale snapshot.`);
+        throw new Error(`stale snapshot`);
       }
     }
 
@@ -126,7 +126,7 @@ export function createMachine<
 
           return (...args: any[]) => {
             if (notifying) {
-              throw new Error(`Illegal transition.`);
+              throw new Error(`illegal transition`);
             }
 
             assertVersion();
@@ -152,11 +152,13 @@ export function createMachine<
 
         return currentState;
       },
+
       get value() {
         assertVersion();
 
         return currentValue;
       },
+
       get actions() {
         assertVersion();
 
@@ -171,13 +173,15 @@ export function createMachine<
         ? (currentSnapshot as any)
         : undefined;
     }) as any,
-    assert: (expectedState) => {
-      if (expectedState !== currentState) {
-        throw new Error(`Unexpected state.`);
+
+    assert: (...expectedStates) => {
+      if (!expectedStates.some((expectedState) => expectedState === currentState)) {
+        throw new Error(`unexpected state`);
       }
 
       return currentSnapshot as any;
     },
+
     subscribe(listener, { signal } = {}) {
       listeners.add(listener);
 

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import type { InferSnapshot, InferStateUnion, Machine } from './create-machine.js';
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import { createMachine } from './create-machine.js';
@@ -141,16 +139,27 @@ describe(`createMachine()`, () => {
   test(`unexpected states`, () => {
     const isRed = trafficLightMachine.assert(`isRed`);
 
-    expect(() => trafficLightMachine.assert(`isTurningGreen`)).toThrow(`Unexpected state.`);
-    expect(() => trafficLightMachine.assert(`isGreen`)).toThrow(`Unexpected state.`);
-    expect(() => trafficLightMachine.assert(`isTurningRed`)).toThrow(`Unexpected state.`);
+    expect(() => trafficLightMachine.assert(`isTurningGreen`)).toThrow(`unexpected state`);
+    expect(() => trafficLightMachine.assert(`isGreen`)).toThrow(`unexpected state`);
+    expect(() => trafficLightMachine.assert(`isTurningRed`)).toThrow(`unexpected state`);
 
     isRed.actions.turnGreen(`#FFFF00`);
 
-    expect(() => trafficLightMachine.assert(`isRed`)).toThrow(`Unexpected state.`);
+    expect(() => trafficLightMachine.assert(`isRed`)).toThrow(`unexpected state`);
     expect(() => trafficLightMachine.assert(`isTurningGreen`)).not.toThrow();
-    expect(() => trafficLightMachine.assert(`isGreen`)).toThrow(`Unexpected state.`);
-    expect(() => trafficLightMachine.assert(`isTurningRed`)).toThrow(`Unexpected state.`);
+    expect(() => trafficLightMachine.assert(`isGreen`)).toThrow(`unexpected state`);
+    expect(() => trafficLightMachine.assert(`isTurningRed`)).toThrow(`unexpected state`);
+
+    const isTurningGreenOrRed = trafficLightMachine.assert(`isTurningGreen`, `isTurningRed`);
+
+    // @ts-expect-error ts(2367)
+    expect(isTurningGreenOrRed.state === `isRed`).toBe(false);
+    expect(isTurningGreenOrRed.state === `isTurningGreen`).toBe(true);
+    // @ts-expect-error ts(2367)
+    expect(isTurningGreenOrRed.state === `isGreen`).toBe(false);
+    expect(isTurningGreenOrRed.state === `isTurningRed`).toBe(false);
+
+    expect(() => trafficLightMachine.assert(`isRed`, `isGreen`)).toThrow(`unexpected state`);
   });
 
   test(`stale snapshots`, () => {
@@ -160,7 +169,7 @@ describe(`createMachine()`, () => {
 
     turnGreen(`#FFFF00`);
 
-    const errorMessage = `Stale snapshot.`;
+    const errorMessage = `stale snapshot`;
 
     expect(() => isRed.state).toThrow(errorMessage);
     expect(() => isRed.value).toThrow(errorMessage);
@@ -180,7 +189,7 @@ describe(`createMachine()`, () => {
 
     expect(isTurningGreen.state).toBe(`isTurningGreen`);
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenNthCalledWith(1, new Error(`Illegal transition.`));
+    expect(consoleErrorSpy).toHaveBeenNthCalledWith(1, new Error(`illegal transition`));
   });
 
   test(`errors in listener functions do not prevent other listeners from being called subsequently`, () => {
@@ -268,14 +277,14 @@ describe(`createMachine()`, () => {
 
     void (state satisfies 'isRed' | 'isTurningGreen' | 'isGreen' | 'isTurningRed');
     void (state satisfies InferStateUnion<typeof trafficLightMachine>);
-    //@ts-expect-error
-    void (state satisfies Exclude<InferState<typeof trafficLightMachine>, 'isRed'>);
-    //@ts-expect-error
-    void (state satisfies Exclude<InferState<typeof trafficLightMachine>, 'isTurningGreen'>);
-    //@ts-expect-error
-    void (state satisfies Exclude<InferState<typeof trafficLightMachine>, 'isGreen'>);
-    //@ts-expect-error
-    void (state satisfies Exclude<InferState<typeof trafficLightMachine>, 'isTurningRed'>);
+    // @ts-expect-error ts(1360)
+    void (state satisfies Exclude<InferStateUnion<typeof trafficLightMachine>, 'isRed'>);
+    // @ts-expect-error ts(1360)
+    void (state satisfies Exclude<InferStateUnion<typeof trafficLightMachine>, 'isTurningGreen'>);
+    // @ts-expect-error ts(1360)
+    void (state satisfies Exclude<InferStateUnion<typeof trafficLightMachine>, 'isGreen'>);
+    // @ts-expect-error ts(1360)
+    void (state satisfies Exclude<InferStateUnion<typeof trafficLightMachine>, 'isTurningRed'>);
     void (value satisfies { color: '#FF0000' } | { color: '#FFFF00' } | { color: '#00FF00' });
 
     void (actions satisfies
@@ -294,7 +303,7 @@ describe(`createMachine()`, () => {
 
     expect(isRed).not.toBe(undefined);
 
-    // @ts-expect-error
+    // @ts-expect-error ts(18048)
     void isRed.state;
 
     void (isRed?.state satisfies

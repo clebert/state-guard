@@ -7,6 +7,7 @@ import ts from 'typescript-eslint';
 export default [
   { ignores: [`coverage/`, `lib/`] },
   { languageOptions: { ecmaVersion: 2022, sourceType: `module`, globals: { ...globals.browser } } },
+  { files: [`**/*.js`, `**/*.cjs`], languageOptions: { globals: { ...globals.node } } },
   js.configs.recommended,
 
   {
@@ -16,7 +17,7 @@ export default [
 
       'no-restricted-globals': [
         `error`,
-        { name: `__dirname`, message: `Use "dirname(fileURLToPath(import.meta.url))" instead.` },
+        { name: `__dirname`, message: `Use "fileURLToPath(import.meta.dirname)" instead.` },
         { name: `__filename`, message: `Use "fileURLToPath(import.meta.url)" instead.` },
       ],
 
@@ -44,6 +45,7 @@ export default [
         '@typescript-eslint/no-import-type-side-effects': `error`,
         '@typescript-eslint/no-require-imports': `error`,
         '@typescript-eslint/no-shadow': [`error`, { hoist: `all` }],
+        '@typescript-eslint/no-unused-vars': `off`,
         '@typescript-eslint/promise-function-async': `error`,
         '@typescript-eslint/quotes': [`error`, `backtick`],
         'no-shadow': `off`,
