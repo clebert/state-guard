@@ -27,6 +27,10 @@ export type Machine<
     listener: () => void,
     options?: { readonly signal?: AbortSignal | undefined },
   ): () => void;
+
+  getPrevStates<TState extends keyof TTransformerMap>(
+    state: TState,
+  ): readonly InferPrevStateUnion<TTransformerMap, TTransitionsMap, TState>[];
 };
 
 export type TransformerMap = Readonly<Record<string, (...args: any[]) => any>>;
@@ -49,8 +53,6 @@ export interface Snapshot<
       ...args: Parameters<TTransformerMap[TTransitionsMap[TState][TActionName]]>
     ) => Snapshot<TTransformerMap, TTransitionsMap, TTransitionsMap[TState][TActionName]>;
   };
-
-  readonly prevStates: readonly InferPrevStateUnion<TTransformerMap, TTransitionsMap, TState>[];
 }
 
 export type InferPrevStateUnion<
@@ -201,12 +203,6 @@ export function createMachine<
 
         return actions;
       },
-
-      get prevStates() {
-        assertVersion();
-
-        return prevStatesMap[currentState as string] as any;
-      },
     };
   }
 
@@ -236,6 +232,10 @@ export function createMachine<
       signal?.addEventListener(`abort`, unsubscribe);
 
       return unsubscribe;
+    },
+
+    getPrevStates(state) {
+      return prevStatesMap[state as string] as any;
     },
   };
 }

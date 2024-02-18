@@ -94,17 +94,17 @@ describe(`createMachine()`, () => {
   });
 
   test(`prev states`, () => {
-    const isRed = trafficLightMachine.assert(`isRed`);
+    const prevStates = trafficLightMachine.getPrevStates(`isRed`);
 
     // @ts-expect-error ts(1360)
-    void (isRed.prevStates satisfies ReadonlyArray<'isRed'>);
+    void (prevStates satisfies ReadonlyArray<'isRed'>);
     // @ts-expect-error ts(1360)
-    void (isRed.prevStates satisfies ReadonlyArray<'isTurningGreen'>);
+    void (prevStates satisfies ReadonlyArray<'isTurningGreen'>);
     // @ts-expect-error ts(1360)
-    void (isRed.prevStates satisfies ReadonlyArray<'isGreen'>);
-    void (isRed.prevStates satisfies ReadonlyArray<'isTurningRed'>);
+    void (prevStates satisfies ReadonlyArray<'isGreen'>);
+    void (prevStates satisfies ReadonlyArray<'isTurningRed'>);
 
-    expect(isRed.prevStates).toEqual([`isTurningRed`]);
+    expect(prevStates).toEqual([`isTurningRed`]);
   });
 
   test(`subscriptions`, () => {
@@ -194,7 +194,6 @@ describe(`createMachine()`, () => {
     expect(() => isRed.state).toThrow(errorMessage);
     expect(() => isRed.value).toThrow(errorMessage);
     expect(() => isRed.actions).toThrow(errorMessage);
-    expect(() => isRed.prevStates).toThrow(errorMessage);
     expect(() => actions.turnGreen).toThrow(errorMessage);
     expect(() => turnGreen(`#FFFF00`)).toThrow(errorMessage);
   });
