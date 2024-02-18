@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
 export type Machine<
   TTransformerMap extends TransformerMap,
   TTransitionsMap extends TransitionsMap<TTransformerMap>,
@@ -19,7 +14,13 @@ export type Machine<
   assert<TExpectedStates extends (keyof TTransformerMap)[]>(
     this: void,
     ...expectedStates: TExpectedStates
-  ): Snapshot<TTransformerMap, TTransitionsMap, TExpectedStates[number]>;
+  ): {
+    [TExpectedState in TExpectedStates[number]]: Snapshot<
+      TTransformerMap,
+      TTransitionsMap,
+      TExpectedState
+    >;
+  }[TExpectedStates[number]];
 
   subscribe(
     this: void,

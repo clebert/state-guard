@@ -36,6 +36,7 @@ export default [
     {
       rules: {
         '@typescript-eslint/consistent-type-imports': `error`,
+        '@typescript-eslint/no-explicit-any': `off`,
 
         '@typescript-eslint/explicit-module-boundary-types': [
           `error`,
@@ -45,6 +46,9 @@ export default [
         '@typescript-eslint/no-import-type-side-effects': `error`,
         '@typescript-eslint/no-require-imports': `error`,
         '@typescript-eslint/no-shadow': [`error`, { hoist: `all` }],
+        '@typescript-eslint/no-unsafe-argument': `off`,
+        '@typescript-eslint/no-unsafe-assignment': `off`,
+        '@typescript-eslint/no-unsafe-return': `off`,
         '@typescript-eslint/no-unused-vars': `off`,
         '@typescript-eslint/promise-function-async': `error`,
         '@typescript-eslint/quotes': [`error`, `backtick`],

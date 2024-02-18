@@ -1,6 +1,6 @@
-import type { InferSnapshot, InferStateUnion, Machine } from './create-machine.js';
+import type { InferSnapshot, InferStateUnion, Machine } from './create_machine.js';
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
-import { createMachine } from './create-machine.js';
+import { createMachine } from './create_machine.js';
 
 const transformerMap = {
   isRed: (color: '#FF0000') => ({ color }),
@@ -159,7 +159,13 @@ describe(`createMachine()`, () => {
     expect(isTurningGreenOrRed.state === `isGreen`).toBe(false);
     expect(isTurningGreenOrRed.state === `isTurningRed`).toBe(false);
 
-    expect(() => trafficLightMachine.assert(`isRed`, `isGreen`)).toThrow(`unexpected state`);
+    if (isTurningGreenOrRed.state === `isTurningGreen`) {
+      isTurningGreenOrRed.actions.setGreen(`#00FF00`);
+    }
+
+    expect(() => trafficLightMachine.assert(`isTurningGreen`, `isTurningRed`)).toThrow(
+      `unexpected state`,
+    );
   });
 
   test(`stale snapshots`, () => {
