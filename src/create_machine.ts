@@ -158,6 +158,12 @@ export function createMachine<
     const actions = new Proxy(
       {},
       {
+        has(_, actionName) {
+          assertVersion();
+
+          return actionName in transitionsMap[currentState];
+        },
+
         get(_, actionName) {
           assertVersion();
 

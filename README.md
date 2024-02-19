@@ -8,7 +8,7 @@ seamless integration with TypeScript. It facilitates deterministic behavior by o
 encapsulated state machine, user-defined actions and state transformers, as well as automatic stale
 snapshot invalidation.
 
-_✅ 511 B with all dependencies, minified and gzipped._
+_✅ 524 B with all dependencies, minified and gzipped._
 
 ## Installation
 

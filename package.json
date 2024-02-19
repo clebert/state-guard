@@ -44,19 +44,19 @@
   "size-limit": [
     {
       "name": "brotli compression",
-      "limit": "463 B",
+      "limit": "473 B",
       "path": "./lib/mod.js",
       "brotli": true
     },
     {
       "name": "gzip compression",
-      "limit": "511 B",
+      "limit": "524 B",
       "path": "./lib/mod.js",
       "gzip": true
     },
     {
       "name": "no compression",
-      "limit": "463 B",
+      "limit": "473 B",
       "path": "./lib/mod.js",
       "gzip": false
     }
