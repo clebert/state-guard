@@ -24,7 +24,7 @@ export type Machine<
 
   subscribe(
     this: void,
-    listener: () => void,
+    listener: () => unknown,
     options?: { readonly signal?: AbortSignal | undefined },
   ): () => void;
 
@@ -53,6 +53,8 @@ export interface Snapshot<
       ...args: Parameters<TTransformerMap[TTransitionsMap[TState][TActionName]]>
     ) => Snapshot<TTransformerMap, TTransitionsMap, TTransitionsMap[TState][TActionName]>;
   };
+
+  isFresh(this: void): boolean;
 }
 
 export type InferPrevStateUnion<
@@ -208,6 +210,10 @@ export function createMachine<
         assertVersion();
 
         return actions;
+      },
+
+      isFresh() {
+        return version === currentVersion;
       },
     };
   }

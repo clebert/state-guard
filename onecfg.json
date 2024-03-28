@@ -19,8 +19,8 @@
     "ci.sh": [
       {
         "value": [
-          "npm run compile:emit",
           "npm run compile:check",
+          "npm run compile:emit",
           "npm run format:check",
           "npm run lint",
           "npm run size:check",

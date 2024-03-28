@@ -8,7 +8,7 @@ seamless integration with TypeScript. It facilitates deterministic behavior by o
 encapsulated state machine, user-defined actions and state transformers, as well as automatic stale
 snapshot invalidation.
 
-_✅ 524 B with all dependencies, minified and gzipped._
+_✅ 536 B with all dependencies, minified and gzipped._
 
 ## Installation
 
@@ -18,74 +18,86 @@ npm install state-guard
 
 ## Usage Example
 
-Here's how to use StateGuard to define a simple state machine for data loading:
+Here's how to use StateGuard to define a simple state machine for fetching website content:
 
 1. Import `createMachine` function from the StateGuard package.
 
-```js
+```ts
 import { createMachine } from 'state-guard';
 ```
 
-2. Create a `dataMachine` using the `createMachine` function, with the initial state, value, a
-   transformer map, and transitions map.
+2. Create a `websiteContent` machine using the `createMachine` function, with the initial state,
+   value, a transformer map, and transitions map.
 
-```js
-const dataMachine = createMachine({
-  initialState: `isInitialized`,
+```ts
+const websiteContent = createMachine({
+  initialState: `resetted`,
   initialValue: undefined,
+
   transformerMap: {
-    isInitialized: () => undefined,
-    isLoadingData: () => undefined,
-    hasData: /** @param {string} data */ (data) => ({ data }),
-    hasError: /** @param {unknown} error */ (error) => ({ error }),
+    resetted: () => undefined,
+    fetching: (url: string) => ({ url }),
+    resolved: (text: string) => ({ text }),
+    rejected: (error: unknown) => ({ error }),
   },
+
   transitionsMap: {
-    isInitialized: { loadData: `isLoadingData` },
-    isLoadingData: { setData: `hasData`, setError: `hasError` },
-    hasData: {},
-    hasError: {},
+    resetted: { fetch: `fetching` },
+    fetching: { resolve: `resolved`, reject: `rejected` },
+    resolved: { reset: `resetted` },
+    rejected: { reset: `resetted` },
   },
 });
 ```
 
-3. Subscribe to `dataMachine` to log the current state and value.
+3. Subscribe to `websiteContent` to start fetching if in the `fetching` state.
 
-```js
-dataMachine.subscribe(() => {
-  const { state, value } = dataMachine.get();
+```ts
+websiteContent.subscribe(async () => {
+  const fetching = websiteContent.get(`fetching`);
+
+  if (fetching) {
+    try {
+      const response = await fetch(fetching.value.url);
+      const text = await response.text();
+
+      if (fetching.isFresh()) {
+        fetching.actions.resolve(text);
+      }
+    } catch (error) {
+      if (fetching.isFresh()) {
+        fetching.actions.reject(error);
+      }
+    }
+  }
+});
+```
+
+4. Subscribe to `websiteContent` to log the current state and value.
+
+```ts
+websiteContent.subscribe(() => {
+  const { state, value } = websiteContent.get();
 
   console.log(state, value);
 });
 ```
 
-4. Trigger the `loadData` action in the `initialized` state and start data loading.
+5. Trigger the `fetch` action in the `resetted` state.
 
-```js
-const isLoadingData = dataMachine.assert(`isInitialized`).actions.loadData();
-
-try {
-  const response = await fetch(`https://example.com`);
-  const data = await response.text();
-
-  // Set data only if the snapshot is not stale.
-  if (isLoadingData === dataMachine.get(`isLoadingData`)) {
-    isLoadingData.actions.setData(data);
-  }
-} catch (error) {
-  // Set error only if the snapshot is not stale.
-  if (isLoadingData === dataMachine.get(`isLoadingData`)) {
-    isLoadingData.actions.setError(error);
-  }
-}
+```ts
+websiteContent.assert(`resetted`).actions.fetch(`https://example.com`);
 ```
 
-5. Implement a React component using the `useSyncExternalStore` hook for state synchronization.
+6. Implement a React component using the `useSyncExternalStore` hook for state synchronization.
 
-```js
+```ts
 import * as React from 'react';
 
 const YourComponent = () => {
-  const dataSnapshot = React.useSyncExternalStore(dataMachine.subscribe, () => dataMachine.get());
+  const websiteContentSnapshot = React.useSyncExternalStore(websiteContent.subscribe, () =>
+    websiteContent.get(),
+  );
 
   // Your component logic and rendering.
 };
