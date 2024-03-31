@@ -49,6 +49,7 @@ describe(`createMachine()`, () => {
     expect(red.state).toBe(`red`);
     expect(red.value).toEqual({ color: `#FF0000` });
     expect(red.value).toBe(red.value);
+    expect(`turnGreen` in red.actions).toBe(true);
 
     const turningGreen = red.actions.turnGreen(`#FFFF00`);
 
@@ -60,6 +61,7 @@ describe(`createMachine()`, () => {
     expect(turningGreen.state).toBe(`turningGreen`);
     expect(turningGreen.value).toEqual({ color: `#FFFF00` });
     expect(turningGreen.value).toBe(turningGreen.value);
+    expect(`setGreen` in turningGreen.actions).toBe(true);
 
     const green = turningGreen.actions.setGreen(`#00FF00`);
 
@@ -71,6 +73,7 @@ describe(`createMachine()`, () => {
     expect(green.state).toBe(`green`);
     expect(green.value).toEqual({ color: `#00FF00` });
     expect(green.value).toBe(green.value);
+    expect(`turnRed` in green.actions).toBe(true);
 
     const turningRed = green.actions.turnRed(`#FFFF00`);
 
@@ -82,6 +85,7 @@ describe(`createMachine()`, () => {
     expect(turningRed.state).toBe(`turningRed`);
     expect(turningRed.value).toEqual({ color: `#FFFF00` });
     expect(turningRed.value).toBe(turningRed.value);
+    expect(`setRed` in turningRed.actions).toBe(true);
 
     const redAgain = turningRed.actions.setRed(`#FF0000`);
 
@@ -178,13 +182,19 @@ describe(`createMachine()`, () => {
     const { actions } = red;
     const { turnGreen } = actions;
 
-    turnGreen(`#FFFF00`);
+    expect(red.isFresh()).toBe(true);
+
+    const turningGreen = turnGreen(`#FFFF00`);
+
+    expect(red.isFresh()).toBe(false);
+    expect(turningGreen.isFresh()).toBe(true);
 
     const errorMessage = `stale snapshot`;
 
     expect(() => red.state).toThrow(errorMessage);
     expect(() => red.value).toThrow(errorMessage);
     expect(() => red.actions).toThrow(errorMessage);
+    expect(() => `turnGreen` in actions).toThrow(errorMessage);
     expect(() => actions.turnGreen).toThrow(errorMessage);
     expect(() => turnGreen(`#FFFF00`)).toThrow(errorMessage);
   });
