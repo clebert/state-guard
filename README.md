@@ -105,10 +105,18 @@ const YourComponent = () => {
 
 ### Ensuring Snapshot Freshness
 
-In some cases, a snapshot taken can become stale, for example, when used after the result of an
-asynchronous operation. Using a stale snapshot will lead to exceptions being thrown, and it is
-crucial to ensure that this does not happen. The StateGuard API enables you to avoid such issues by
-allowing you to check the freshness of a snapshot or get an updated one before proceeding.
+In scenarios where snapshots are used following asynchronous operations, it's critical to validate
+their freshness to ensure actions are based on the current state. To achieve this, use the
+`isFresh()` method on an existing snapshot instead of acquiring a new one via `get()`. This approach
+is preferred because even though a new snapshot might represent a state with the same name, it might
+not reflect the same execution context you're working within. A snapshot that remains fresh ensures
+that your code's execution branch is still active and relevant to the current state of the
+application.
+
+Importantly, when performing such checks, avoid using `await` within blocks guarded by `isFresh()`.
+The reason is that during the delay introduced by `await`, the snapshot's state could have been
+altered by other operations, rendering it stale once the asynchronous operation completes. This
+could potentially lead to actions being taken based on outdated information.
 
 ### Avoiding State Transitions in Subscription Listeners
 
